@@ -1,5 +1,9 @@
 # よんだよ
 
+## Figmaファイル
+https://www.figma.com/design/kD0HKZz5jdbxIvEPZBxFcX/%E3%82%88%E3%82%93%E3%81%A0%E3%82%88?node-id=0-1&t=Uzq4vypSRA5cTtgf-1
+
+
 # よんだよ
 
 親子で楽しめる読み聞かせ記録アプリを作成したいと思っています。  
