@@ -1,3 +1,4 @@
+
 # よんだよ
 
 ## Figmaファイル
@@ -125,4 +126,3 @@ https://www.figma.com/design/kD0HKZz5jdbxIvEPZBxFcX/%E3%82%88%E3%82%93%E3%81%A0%
 ## 🛠 使用予定API
 
 - [楽天ブックス書籍API](https://webservice.rakuten.co.jp/documentation/books-magazine-search)
-
