@@ -1,6 +1,6 @@
 /* app/globals.css */
-@import "tailwindcss";
 @import url('https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;500;700&display=swap');
+@import "tailwindcss";
 
 @theme inline {
   --color-cream: #FFF8DC;
