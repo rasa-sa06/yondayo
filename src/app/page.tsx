@@ -6,6 +6,7 @@ import { MenuBar } from '@/components/MenuBar';
 import { Button } from '@/components/Button';
 import { Card } from '@/components/Card';
 import { StarRating } from '@/components/StarRating';
+import { ReadingRecordCard } from '@/components/ReadingRecordCard';
 
 export default function Home() {
   const [currentPage, setCurrentPage] = useState<'home' | 'read' | 'search' | 'wishlist'>('home');
@@ -67,6 +68,25 @@ export default function Home() {
           <p className="text-brown">したの メニューバーを クリックして ページを きりかえて ください</p>
           <p className="mt-2 text-brown font-bold">げんざいの ページ: {currentPage}</p>
         </Card>
+
+        {/* 読書記録カードテスト */}
+        <Card className="mb-6">
+          <h2 className="text-xl font-bold mb-4">よんだ ほん カード</h2>
+          <ReadingRecordCard
+            record={{
+              id: '1',
+              title: 'はらぺこ あおむし',
+              author: 'エリック・カール',
+              imageUrl: '',
+              readCount: 3,
+              rating: 5,
+              review: 'とても たのしい えほん でした！',
+              readDate: '2025-10-01',
+              createdAt: '2025-10-01T10:00:00Z',
+            }}
+          />
+        </Card>
+
       </main>
       <MenuBar currentPage={currentPage} onPageChange={setCurrentPage} />
     </div>
