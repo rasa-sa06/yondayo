@@ -107,7 +107,7 @@ export default function Home() {
         />
 
       </main>
-      <MenuBar currentPage={currentPage} onPageChange={setCurrentPage} />
+      <MenuBar />
     </div>
   );
 }
