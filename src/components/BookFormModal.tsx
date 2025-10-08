@@ -118,16 +118,16 @@ export const BookFormModal: React.FC<BookFormModalProps> = ({
                         />
                     </div>
 
-                    <div className="mb-5">
+                    {/* <div className="mb-5">
                         <label className="block mb-2 font-medium text-brown text-base">よんだ かいすう</label>
-                            <input
-                                type="number"
-                                min="1"
-                                value={formData.readCount}
-                                onChange={(e) => setFormData({ ...formData, readCount: parseInt(e.target.value) || 1 })}
-                                className="w-full p-3 border-2 border-cyan rounded-xl font-mplus text-base text-brown bg-white focus:outline-none focus:border-[#99e6e6]"
-                            />
-                        </div>
+                        <input
+                            type="number"
+                            min="1"
+                            value={formData.readCount}
+                            onChange={(e) => setFormData({ ...formData, readCount: parseInt(e.target.value) || 1 })}
+                            className="w-full p-3 border-2 border-cyan rounded-xl font-mplus text-base text-brown bg-white focus:outline-none focus:border-[#99e6e6]"
+                        />
+                    </div> */}
 
                     <div className="mb-5">
                         <label className="block mb-2 font-medium text-brown text-base">ひょうか *</label>
