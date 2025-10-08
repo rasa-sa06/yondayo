@@ -77,7 +77,7 @@ export const ReadPage: React.FC<ReadPageProps> = ({
                     </Button>
             </div>
 
-            <div className="flex gap-3 mb-5 bg-white p-5 rounded-[20px] shadow-[0_2px_8px_rgba(102,0,0,0.1)]">
+            {/* <div className="flex gap-3 mb-5 bg-white p-5 rounded-[20px] shadow-[0_2px_8px_rgba(102,0,0,0.1)]">
                 <input
                     type="text"
                     placeholder="タイトルや さくしゃで けんさく"
@@ -94,6 +94,28 @@ export const ReadPage: React.FC<ReadPageProps> = ({
                     <option value="title">タイトル</option>
                     <option value="rating">ひょうか</option>
                 </select>
+            </div> */}
+
+            <div className="flex flex-col gap-3 mb-5 bg-white p-5 rounded-[20px] shadow-[0_2px_8px_rgba(102,0,0,0.1)]">
+                <input
+                    type="text"
+                    placeholder="タイトルや さくしゃで けんさく"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="w-full p-3 border-2 border-cyan rounded-xl font-mplus text-base text-brown bg-cream focus:outline-none focus:border-[#99e6e6]"
+                />
+                <div className="flex items-center gap-2">
+                    <label className="text-sm text-brown font-medium whitespace-nowrap">ならびかえ：</label>
+                    <select
+                    value={sortBy}
+                    onChange={(e) => setSortBy(e.target.value as 'date' | 'title' | 'rating')}
+                    className="flex-1 p-3 border-2 border-cyan rounded-xl font-mplus text-base text-brown bg-cream cursor-pointer focus:outline-none focus:border-[#99e6e6]"
+                    >
+                    <option value="date">よんだ ひ（あたらしい じゅん）</option>
+                    <option value="title">タイトル（あいうえお じゅん）</option>
+                    <option value="rating">ひょうか（たかい じゅん）</option>
+                    </select>
+                </div>
             </div>
 
             <div className="bg-cyan p-4 rounded-[20px] text-center mb-5 shadow-[0_2px_8px_rgba(102,0,0,0.1)]">
