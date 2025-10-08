@@ -20,7 +20,7 @@ export const Header: React.FC = () => {
     const weekday = weekdays[today.getDay()];
 
     return (
-        <header className="top-0 left-0 right-0 bg-white">
+        <header className="top-0 left-0 right-0 mb-6 bg-white">
             <div className="max-w-[1200px] mx-auto px-5 py-2 flex justify-between items-center">
                 <Logo size="small" />
                 <div className="flex flex-col items-end text-sm">
