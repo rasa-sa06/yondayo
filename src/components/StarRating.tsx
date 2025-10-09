@@ -1,5 +1,7 @@
 // components/StarRating.tsx
-import React from 'react';
+import clsx from 'clsx';
+// import { ReactNode } from 'react'; ← 不要
+
 
 type StarRatingProps = {
     rating: number;
@@ -8,18 +10,12 @@ type StarRatingProps = {
     size?: 'small' | 'medium' | 'large';
 };
 
-export const StarRating: React.FC<StarRatingProps> = ({
+export function StarRating({
     rating,
     onRatingChange,
     readonly = false,
     size = 'medium',
-}) => {
-    const sizeClasses = {
-        small: 'text-base',
-        medium: 'text-2xl',
-        large: 'text-[32px]',
-    };
-    
+}: StarRatingProps) {
     const handleClick = (value: number) => {
         if (!readonly && onRatingChange) {
             onRatingChange(value);
@@ -27,16 +23,23 @@ export const StarRating: React.FC<StarRatingProps> = ({
     };
 
     return (
-    <div className="inline-flex gap-1">
-        {[1, 2, 3, 4, 5].map((value) => (
-        <span
-            key={value}
-            className={`${sizeClasses[size]} ${value <= rating ? 'text-[#FFD700]' : 'text-[#ddd]'} ${!readonly ? 'cursor-pointer hover:scale-110' : 'cursor-default'} transition-all duration-200`}
-            onClick={() => handleClick(value)}
-        >
-            ★
-        </span>
-        ))}
-    </div>
+        <div className="inline-flex gap-1">
+            {[1, 2, 3, 4, 5].map((value) => (
+                <span
+                    key={value}
+                    className={clsx(
+                        'transition-all duration-200',
+                        size === 'small' && 'text-base',
+                        size === 'medium' && 'text-2xl',
+                        size === 'large' && 'text-[32px]',
+                        value <= rating ? 'text-[#FFD700]' : 'text-[#ddd]',
+                        readonly ? 'cursor-default' : 'cursor-pointer hover:scale-110'
+                    )}
+                    onClick={() => handleClick(value)}
+                >
+                    ★
+                </span>
+            ))}
+        </div>
     );
-};
+}

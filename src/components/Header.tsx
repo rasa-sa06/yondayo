@@ -1,8 +1,7 @@
 // components/Header.tsx
-import React from "react";
 import { Logo } from "./Logo";
 
-export const Header: React.FC = () => {
+export function Header() {
     // 現在の日付を取得
     const today = new Date();
     const year = today.getFullYear();
@@ -34,4 +33,4 @@ export const Header: React.FC = () => {
             </div>
         </header>
     );
-};
+}

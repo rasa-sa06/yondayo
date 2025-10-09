@@ -1,5 +1,4 @@
 // components/ReadingRecordCard.tsx
-import React from "react";
 import Image from "next/image";
 import { Card } from "./Card";
 import { StarRating } from "./StarRating";
@@ -10,10 +9,7 @@ type ReadingRecordCardProps = {
     onClick?: () => void;
 };
 
-export const ReadingRecordCard: React.FC<ReadingRecordCardProps> = ({
-    record,
-    onClick,
-}) => {
+export function ReadingRecordCard({ record, onClick }: ReadingRecordCardProps) {
     const formatDate = (dateString: string) => {
         const date = new Date(dateString);
         const year = date.getFullYear();
@@ -61,4 +57,4 @@ export const ReadingRecordCard: React.FC<ReadingRecordCardProps> = ({
             </div>
         </Card>
     );
-};
+}

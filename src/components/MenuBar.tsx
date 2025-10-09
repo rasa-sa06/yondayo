@@ -1,13 +1,13 @@
 // components/MenuBar.tsx
 "use client";
 
-import React from "react";
 import Link from "next/link";
 import Image from 'next/image';
 import { usePathname } from "next/navigation";
 
-export const MenuBar: React.FC = () => {
+export function MenuBar() {
     const pathname = usePathname();
+
     const menuItems = [
         { id: "home", path: "/", icon: "/icon-home.png", label: "ホーム" },
         { id: "read", path: "/read", icon: "/icon-read.png", label: "よんだほん" },
@@ -22,11 +22,10 @@ export const MenuBar: React.FC = () => {
                     <Link
                         key={item.id}
                         href={item.path}
-                        className={`flex-1 flex flex-col items-center gap-1 px-2 py-2 max-w-[100px] font-mplus rounded-xl transition-all ${
-                            pathname === item.path
+                        className={`flex-1 flex flex-col items-center gap-1 px-2 py-2 max-w-[100px] font-mplus rounded-xl transition-all ${pathname === item.path
                                 ? "bg-cyan/30 font-bold"
                                 : "bg-transparent font-normal hover:bg-cyan/20"
-                        }`}
+                            }`}
                     >
                         {/* <span
                             className={`text-2xl transition-transform ${
@@ -43,7 +42,7 @@ export const MenuBar: React.FC = () => {
                             height={24}
                             className={`transition-transform ${pathname === item.path ? 'scale-110' : 'scale-100'}`}
                         />
-                        <span className="text-[11px] whitespace-nowrap">
+                        <span className="text-[11px] whitespace-nowrap text-brown">
                             {item.label}
                         </span>
                     </Link>
@@ -51,4 +50,4 @@ export const MenuBar: React.FC = () => {
             </div>
         </nav>
     );
-};
+}

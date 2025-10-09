@@ -1,5 +1,5 @@
 // components/BookFormModal.tsx
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from './Button';
 import { StarRating } from './StarRating';
 import type { ReadingRecord } from '../types';
@@ -11,12 +11,12 @@ type BookFormModalProps = {
     initialData?: ReadingRecord;
 };
 
-export const BookFormModal: React.FC<BookFormModalProps> = ({
+export function BookFormModal({
     isOpen,
     onClose,
     onSubmit,
     initialData,
-}) => {
+}: BookFormModalProps) {
     const [formData, setFormData] = useState({
         title: '',
         author: '',
@@ -53,11 +53,11 @@ export const BookFormModal: React.FC<BookFormModalProps> = ({
 
     const handleSubmit = () => {
         if (!formData.title || !formData.author) {
-            alert('タイトルと さくしゃは ひつよう です！');
+            alert('タイトルと さくしゃは ひつよう です');
             return;
         }
         if (formData.rating === 0) {
-            alert('ひょうかを えらんで ください！');
+            alert('ひょうかを えらんで ください');
             return;
         }
         onSubmit(formData);
@@ -171,4 +171,4 @@ export const BookFormModal: React.FC<BookFormModalProps> = ({
             </div>
         </div>
     );
-};
+}
