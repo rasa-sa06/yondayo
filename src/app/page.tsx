@@ -1,7 +1,6 @@
 // app/page.tsx
 "use client";
 
-import React from "react";
 import { Header } from "../components/Header";
 import { MenuBar } from "../components/MenuBar";
 import { HomePage } from "../features/HomePage";
