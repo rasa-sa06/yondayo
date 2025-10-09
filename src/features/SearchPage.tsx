@@ -21,7 +21,7 @@ export function SearchPage({ onAddToWishlist }: SearchPageProps) {
     const [searchResults, setSearchResults] = useState<RecommendedBook[]>([]);
     const [isLoading, setIsLoading] = useState(false);
 
-    const ageCategories: AgeCategory[] = ['0歳', '1歳', '2歳', '3歳', '4歳', '5歳', '小学校低学年'];
+    const ageCategories: AgeCategory[] = ['0歳', '1歳', '2歳', '3歳', '4歳', '5歳', '6歳', '小学校低学年'];
     const bookCategories: BookCategory[] = [
         'えほん', 'ずかん', 'かがく', 'ことば', 'きもち', 'きせつ', 'いきもの', 'あそび', 'シリーズ', 'しぜん'
     ];
@@ -169,7 +169,14 @@ export function SearchPage({ onAddToWishlist }: SearchPageProps) {
                     )}
 
                     <Button onClick={handleSearch} variant="primary" size="large" fullWidth>
-                        🔍 けんさく
+                        <Image
+                            src="/icon-search.png"  // public フォルダに置いた画像パス
+                            alt="検索アイコン"
+                            width={24}             // 好きなサイズに調整
+                            height={24}
+                            className="inline-block mr-2" // テキストの左に少し余白
+                        />
+                        けんさく
                     </Button>
                 </div>
             </Card>
@@ -222,7 +229,14 @@ export function SearchPage({ onAddToWishlist }: SearchPageProps) {
                                                 alert('よみたい ほんに ついか しました！');
                                             }}
                                         >
-                                            📌 よみたい ほんに ついか
+                                            <Image
+                                                src="/icon-add.png"  // public フォルダに置いた画像パス
+                                                alt="検索アイコン"
+                                                width={24}             // 好きなサイズに調整
+                                                height={24}
+                                                className="inline-block mr-2" // テキストの左に少し余白
+                                            >
+                                            </Image> よみたい ほんに ついか
                                         </Button>
                                     </div>
                                 </div>

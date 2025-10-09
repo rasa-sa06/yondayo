@@ -45,10 +45,10 @@ export type StampCard = {
 };
 
 // 年齢カテゴリ
-export type AgeCategory = '0歳' | '1歳' | '2歳' | '3歳' | '4歳' | '5歳' | '小学校低学年';
+export type AgeCategory = '0歳' | '1歳' | '2歳' | '3歳' | '4歳' | '5歳' | '6歳' | '小学校低学年';
 
 // 本のカテゴリ
-export type BookCategory = 
+export type BookCategory =
     | 'えほん'
     | 'ずかん'
     | 'かがく'
