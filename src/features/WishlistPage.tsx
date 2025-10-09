@@ -1,20 +1,17 @@
-// pages/WishlistPage.tsx
-"use client";
+// features/WishlistPage.tsx
+'use client';
 
-import React from "react";
-import Image from "next/image";
-import { Card } from "../components/Card";
-import type { WishlistBook } from "../types";
+import Image from 'next/image';
+import clsx from 'clsx';
+import { Card } from '../components/Card';
+import type { WishlistBook } from '../types';
 
 type WishlistPageProps = {
     wishlist: WishlistBook[];
     onRemoveFromWishlist: (id: string) => void;
 };
 
-export const WishlistPage: React.FC<WishlistPageProps> = ({
-    wishlist,
-    onRemoveFromWishlist,
-}) => {
+export function WishlistPage({ wishlist, onRemoveFromWishlist }: WishlistPageProps) {
     const formatDate = (dateString: string) => {
         const date = new Date(dateString);
         const year = date.getFullYear();
@@ -25,11 +22,15 @@ export const WishlistPage: React.FC<WishlistPageProps> = ({
 
     return (
         <div className="max-w-[800px] mx-auto pb-5">
-            <div className="flex justify-between items-center mb-6 bg-white p-5 rounded-[20px] shadow-[0_2px_8px_rgba(102,0,0,0.1)]">
-                <h1 className="text-[28px] font-bold text-brown m-0">
-                    よみたい ほん
-                </h1>
-                <div className="bg-cyan px-5 py-2 rounded-[20px] text-lg font-bold text-brown">
+            <div className={clsx(
+                'flex justify-between items-center mb-6 bg-white p-5',
+                'rounded-[20px] shadow-[0_2px_8px_rgba(102,0,0,0.1)]'
+            )}>
+                <h1 className="text-[28px] font-bold text-brown m-0">よみたい ほん</h1>
+                <div className={clsx(
+                    'bg-cyan px-5 py-2 rounded-[20px]',
+                    'text-lg font-bold text-brown'
+                )}>
                     {wishlist.length}さつ
                 </div>
             </div>
@@ -49,35 +50,33 @@ export const WishlistPage: React.FC<WishlistPageProps> = ({
                                             className="object-cover rounded-lg"
                                         />
                                     ) : (
-                                        <div className="w-full h-full bg-gray-200 rounded-lg flex items-center justify-center text-[32px]">
+                                        <div className={clsx(
+                                            'w-full h-full bg-gray-200 rounded-lg',
+                                            'flex items-center justify-center text-[32px]'
+                                        )}>
                                             📚
                                         </div>
                                     )}
                                 </div>
                                 <div className="flex-1 flex flex-col gap-1.5">
-                                    <h3 className="text-lg font-bold text-brown m-0">
-                                        {book.title}
-                                    </h3>
-                                    <p className="text-sm text-gray-600 m-0">
-                                        {book.author}
-                                    </p>
+                                    <h3 className="text-lg font-bold text-brown m-0">{book.title}</h3>
+                                    <p className="text-sm text-gray-600 m-0">{book.author}</p>
                                     <p className="text-xs text-gray-500 m-0">
-                                        ついか した ひ:{" "}
-                                        {formatDate(book.addedAt)}
+                                        ついか した ひ: {formatDate(book.addedAt)}
                                     </p>
                                 </div>
                                 <div className="flex-shrink-0">
                                     <button
                                         onClick={() => {
-                                            if (
-                                                window.confirm(
-                                                    "リストから さくじょ しますか？"
-                                                )
-                                            ) {
+                                            if (window.confirm('リストから さくじょ しますか？')) {
                                                 onRemoveFromWishlist(book.id);
                                             }
                                         }}
-                                        className="px-4 py-2 text-sm font-mplus border-2 border-cyan rounded-[20px] cursor-pointer font-medium shadow-[0_2px_4px_rgba(102,0,0,0.1)] bg-white text-brown hover:bg-gray-50"
+                                        className={clsx(
+                                            'px-4 py-2 text-sm font-mplus border-2 border-cyan rounded-[20px]',
+                                            'cursor-pointer font-medium shadow-[0_2px_4px_rgba(102,0,0,0.1)]',
+                                            'bg-white text-brown hover:bg-gray-50'
+                                        )}
                                     >
                                         さくじょ
                                     </button>
@@ -87,17 +86,19 @@ export const WishlistPage: React.FC<WishlistPageProps> = ({
                     ))}
                 </div>
             ) : (
-                <div className="text-center py-20 bg-white rounded-[20px] shadow-[0_2px_8px_rgba(102,0,0,0.1)]">
+                <div className={clsx(
+                    'text-center py-20 bg-white',
+                    'rounded-[20px] shadow-[0_2px_8px_rgba(102,0,0,0.1)]'
+                )}>
                     <div className="text-[80px] mb-5">📌</div>
                     <p className="text-xl font-bold text-brown m-0 mb-3">
                         よみたい ほんが まだ ありません
                     </p>
                     <p className="text-base text-gray-500 m-0 leading-relaxed">
-                        「ほんを さがす」から きになる ほんを ついか
-                        しましょう！
+                        「ほんを さがす」から きになる ほんを ついか しましょう！
                     </p>
                 </div>
             )}
         </div>
     );
-};
+}
