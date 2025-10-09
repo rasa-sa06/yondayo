@@ -1,7 +1,8 @@
 // pages/HomePage.tsx
 'use client';
 
-import React, { useState } from 'react';
+import { useState } from 'react';
+import clsx from 'clsx';
 import { Button } from '../components/Button';
 import { ReadingRecordCard } from '../components/ReadingRecordCard';
 import { BookFormModal } from '../components/BookFormModal';
@@ -15,9 +16,8 @@ type HomePageProps = {
     onViewAllRecords: () => void;
 };
 
-export const HomePage: React.FC<HomePageProps> = ({ records, onAddRecord, onViewAllRecords }) => {
+export function HomePage({ records, onAddRecord, onViewAllRecords }: HomePageProps) {
     const [isModalOpen, setIsModalOpen] = useState(false);
-
     // 最新3件を取得
     const recentRecords = records.slice(0, 3);
 
@@ -26,19 +26,22 @@ export const HomePage: React.FC<HomePageProps> = ({ records, onAddRecord, onView
             <section className="mb-6 bg-white rounded-[20px] p-5 shadow-[0_2px_8px_rgba(102,0,0,0.1)]">
                 <div className="flex justify-between items-center mb-4">
                     <h2 className="text-2xl font-bold text-brown m-0">さいきん よんだ ほん</h2>
-                        {records.length > 0 && (
-                            <button
-                                onClick={onViewAllRecords}
-                                className="bg-transparent border-none text-brown text-base font-mplus cursor-pointer underline hover:opacity-70"
-                            >
-                                → すべて みる
-                            </button>
-                        )}
+                    {records.length > 0 && (
+                        <button
+                            onClick={onViewAllRecords}
+                            className={clsx(
+                                'bg-transparent border-none text-brown text-base',
+                                'font-mplus cursor-pointer underline hover:opacity-70'
+                            )}
+                        >
+                            → すべて みる
+                        </button>
+                    )}
                 </div>
                 {recentRecords.length > 0 ? (
                     <div className="flex flex-col gap-4">
                         {recentRecords.map((record) => (
-                        <ReadingRecordCard key={record.id} record={record} />
+                            <ReadingRecordCard key={record.id} record={record} />
                         ))}
                     </div>
                 ) : (
@@ -67,17 +70,19 @@ export const HomePage: React.FC<HomePageProps> = ({ records, onAddRecord, onView
                         {[...Array(10)].map((_, index) => (
                             <div
                                 key={index}
-                                className={`w-[50px] h-[50px] rounded-full border-[3px] border-cyan flex items-center justify-center text-[32px] ${
+                                className={clsx(
+                                    'w-[50px] h-[50px] rounded-full border-[3px] border-cyan',
+                                    'flex items-center justify-center text-[32px]',
                                     index < records.length % 10 ? 'bg-cyan' : 'bg-cream'
-                                }`}
+                                )}
                             >
                                 {index < records.length % 10 && (
                                     <Image
-                                    src="/stamp.png"  // ← public/stamp.png のパス
-                                    alt="スタンプ"
-                                    width={32}        // お好みで調整
-                                    height={32}       // お好みで調整
-                                />
+                                        src="/stamp.png"  // ← public/stamp.png のパス
+                                        alt="スタンプ"
+                                        width={32}        // お好みで調整
+                                        height={32}       // お好みで調整
+                                    />
                                 )}
                             </div>
                         ))}
