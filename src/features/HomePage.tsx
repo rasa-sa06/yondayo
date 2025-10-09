@@ -6,6 +6,8 @@ import { Button } from '../components/Button';
 import { ReadingRecordCard } from '../components/ReadingRecordCard';
 import { BookFormModal } from '../components/BookFormModal';
 import type { ReadingRecord } from '../types';
+import Image from 'next/image'; // ← 追加
+
 
 type HomePageProps = {
     records: ReadingRecord[];
@@ -69,7 +71,14 @@ export const HomePage: React.FC<HomePageProps> = ({ records, onAddRecord, onView
                                     index < records.length % 10 ? 'bg-cyan' : 'bg-cream'
                                 }`}
                             >
-                                {index < records.length % 10 ? '🌸' : ''}
+                                {index < records.length % 10 && (
+                                    <Image
+                                    src="/stamp.png"  // ← public/stamp.png のパス
+                                    alt="スタンプ"
+                                    width={32}        // お好みで調整
+                                    height={32}       // お好みで調整
+                                />
+                                )}
                             </div>
                         ))}
                     </div>
