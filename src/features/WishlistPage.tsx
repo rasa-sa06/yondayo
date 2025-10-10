@@ -90,7 +90,15 @@ export function WishlistPage({ wishlist, onRemoveFromWishlist }: WishlistPagePro
                     'text-center py-20 bg-white',
                     'rounded-[20px] shadow-[0_2px_8px_rgba(102,0,0,0.1)]'
                 )}>
-                    <div className="text-[80px] mb-5">📌</div>
+                    <div className="text-[80px] mb-5 flex justify-center">
+                        <Image
+                            src="/icon-add.png"  // public フォルダに置いた画像パス
+                            alt="検索アイコン"
+                            width={40}             // 好きなサイズに調整
+                            height={40}
+                            className="" // テキストの左に少し余白
+                        ></Image>
+                    </div>
                     <p className="text-xl font-bold text-brown m-0 mb-3">
                         よみたい ほんが まだ ありません
                     </p>
