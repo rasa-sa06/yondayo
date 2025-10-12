@@ -93,7 +93,7 @@ export default function Wishlist() {
                             alt="検索アイコン"
                             width={40}             // 好きなサイズに調整
                             height={40}
-                        ></Image>
+                        />
                     </div>
                     <p className="text-xl font-bold text-brown m-0 mb-3">
                         よみたい ほんが まだ ありません
