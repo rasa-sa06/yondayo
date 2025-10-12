@@ -1,8 +1,5 @@
-// app/page.tsx
 "use client";
 
-import { Header } from "../components/Header";
-import { MenuBar } from "../components/MenuBar";
 import { HomePage } from "../features/HomePage";
 import { useApp } from "../contexts/AppContext";
 import { useRouter } from "next/navigation";
@@ -13,13 +10,11 @@ export default function Home() {
 
     return (
         <>
-            <Header />
             <HomePage
                 records={records}
                 onAddRecord={addRecord}
                 onViewAllRecords={() => router.push("/read")}
             />
-            <MenuBar />
         </>
     );
 }

@@ -1,8 +1,5 @@
-// app/read/page.tsx
 "use client";
 
-import { Header } from "../../components/Header";
-import { MenuBar } from "../../components/MenuBar";
 import { ReadPage } from "../../features/ReadPage";
 import { useApp } from "../../contexts/AppContext";
 
@@ -11,14 +8,12 @@ export default function Read() {
 
     return (
         <>
-            <Header />
             <ReadPage
                 records={records}
                 onAddRecord={addRecord}
                 onDeleteRecord={deleteRecord}
                 onUpdateRecord={updateRecord}
             />
-            <MenuBar />
         </>
     );
 }

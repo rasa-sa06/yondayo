@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import { Header } from "../components/Header";
+import { MenuBar } from "../components/MenuBar";
 
 // Google Fontsの読み込み（Next.jsの推奨方法）
 import { M_PLUS_Rounded_1c } from "next/font/google";
@@ -24,9 +26,13 @@ export default function RootLayout({
 }>) {
     return (
         <html lang="ja">
-            <body className={mPlusRounded.variable}>
-                <AppProvider>{children}</AppProvider>
-            </body>
+            <AppProvider>
+                <Header />
+                <body className={mPlusRounded.variable}>
+                    {children}
+                </body>
+                <MenuBar />
+            </AppProvider>
         </html>
     );
 }
