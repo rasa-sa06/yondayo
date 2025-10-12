@@ -73,15 +73,15 @@ export function HomePage({ records, onAddRecord, onViewAllRecords }: HomePagePro
                                 className={clsx(
                                     'w-[50px] h-[50px] rounded-full border-[3px] border-cyan',
                                     'flex items-center justify-center text-[32px]',
-                                    index < records.length % 10 ? 'bg-cyan' : 'bg-cream'
+                                    'bg-cyan/30'
                                 )}
                             >
                                 {index < records.length % 10 && (
                                     <Image
                                         src="/stamp.png"  // ← public/stamp.png のパス
                                         alt="スタンプ"
-                                        width={32}        // お好みで調整
-                                        height={32}       // お好みで調整
+                                        width={40}        // お好みで調整
+                                        height={40}       // お好みで調整
                                     />
                                 )}
                             </div>
