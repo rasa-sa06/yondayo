@@ -26,13 +26,14 @@ export default function RootLayout({
 }>) {
     return (
         <html lang="ja">
-            <AppProvider>
-                <Header />
-                <body className={mPlusRounded.variable}>
+            <body className={mPlusRounded.variable}>
+                <AppProvider>
+                    <Header />
                     {children}
-                </body>
-                <MenuBar />
-            </AppProvider>
+                    <MenuBar />
+                </AppProvider>
+            </body>
+
         </html>
     );
 }
