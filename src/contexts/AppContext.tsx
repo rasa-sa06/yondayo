@@ -1,4 +1,3 @@
-// contexts/AppContext.tsx
 'use client';
 
 import { createContext, useContext, useState, ReactNode } from 'react';
@@ -7,6 +6,8 @@ import type { ReadingRecord, WishlistBook, RecommendedBook } from '../types';
 type AppContextType = {
     records: ReadingRecord[];
     wishlist: WishlistBook[];
+    selectedChildId: string | null;  // ← 追加
+    setSelectedChildId: (id: string | null) => void;  // ← 追加
     addRecord: (record: Omit<ReadingRecord, 'id' | 'createdAt'>) => void;
     deleteRecord: (id: string) => void;
     updateRecord: (id: string, record: Omit<ReadingRecord, 'id' | 'createdAt'>) => void;
@@ -47,6 +48,7 @@ export function AppProvider({ children }: AppProviderProps) {
     ]);
 
     const [wishlist, setWishlist] = useState<WishlistBook[]>([]);
+    const [selectedChildId, setSelectedChildId] = useState<string | null>(null);  // ← 追加
 
     const addRecord = (newRecord: Omit<ReadingRecord, 'id' | 'createdAt'>) => {
         const record: ReadingRecord = {
@@ -88,6 +90,8 @@ export function AppProvider({ children }: AppProviderProps) {
             value={{
                 records,
                 wishlist,
+                selectedChildId,  // ← 追加
+                setSelectedChildId,  // ← 追加
                 addRecord,
                 deleteRecord,
                 updateRecord,
