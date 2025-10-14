@@ -1,4 +1,3 @@
-// components/MenuBar.tsx
 "use client";
 
 import Link from "next/link";
@@ -13,6 +12,7 @@ export function MenuBar() {
         { id: "read", path: "/read", icon: "/icon-read.png", label: "よんだほん" },
         { id: "search", path: "/search", icon: "/icon-search.png", label: "ほんをさがす" },
         { id: "wishlist", path: "/wishlist", icon: "/icon-wishlist.png", label: "よみたいほん" },
+        { id: "settings", path: "/settings", icon: "/icon-settings.png", label: "せってい" },
     ];
 
     return (
@@ -23,17 +23,10 @@ export function MenuBar() {
                         key={item.id}
                         href={item.path}
                         className={`flex-1 flex flex-col items-center gap-1 px-2 py-2 max-w-[100px] font-mplus rounded-xl transition-all ${pathname === item.path
-                                ? "bg-cyan/30 font-bold"
-                                : "bg-transparent font-normal hover:bg-cyan/20"
+                            ? "bg-cyan/30 font-bold"
+                            : "bg-transparent font-normal hover:bg-cyan/20"
                             }`}
                     >
-                        {/* <span
-                            className={`text-2xl transition-transform ${
-                                pathname === item.id ? "scale-120" : "scale-100"
-                            }`}
-                        >
-                            {item.icon}
-                        </span> */}
 
                         <Image
                             src={item.icon}
