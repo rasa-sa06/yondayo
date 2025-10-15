@@ -4,6 +4,7 @@ import { createContext, useContext, useState, useEffect, ReactNode } from 'react
 import { supabase } from '../../lib/supabase';
 import type { ReadingRecord, WishlistBook, RecommendedBook } from '../types';
 
+
 type AppContextType = {
     records: ReadingRecord[];
     wishlist: WishlistBook[];
