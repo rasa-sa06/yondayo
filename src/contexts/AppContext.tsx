@@ -1,16 +1,17 @@
 'use client';
 
-import { createContext, useContext, useState, ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { supabase } from '../../lib/supabase';
 import type { ReadingRecord, WishlistBook, RecommendedBook } from '../types';
 
 type AppContextType = {
     records: ReadingRecord[];
     wishlist: WishlistBook[];
-    selectedChildId: string | null;  // ← 追加
-    setSelectedChildId: (id: string | null) => void;  // ← 追加
-    addRecord: (record: Omit<ReadingRecord, 'id' | 'createdAt'>) => void;
-    deleteRecord: (id: string) => void;
-    updateRecord: (id: string, record: Omit<ReadingRecord, 'id' | 'createdAt'>) => void;
+    selectedChildId: string | null;
+    setSelectedChildId: (id: string | null) => void;
+    addRecord: (record: Omit<ReadingRecord, 'id' | 'createdAt'>) => Promise<void>;
+    deleteRecord: (id: string) => Promise<void>;
+    updateRecord: (id: string, updatedData: Partial<ReadingRecord>) => Promise<void>;
     addToWishlist: (book: RecommendedBook) => void;
     removeFromWishlist: (id: string) => void;
 };
@@ -22,55 +23,107 @@ type AppProviderProps = {
 };
 
 export function AppProvider({ children }: AppProviderProps) {
-    const [records, setRecords] = useState<ReadingRecord[]>([
-        {
-            id: '1',
-            title: 'はらぺこ あおむし',
-            author: 'エリック・カール',
-            imageUrl: '',
-            readCount: 3,
-            rating: 5,
-            review: 'とても たのしい えほん でした！',
-            readDate: '2025-09-28',
-            createdAt: '2025-09-28T10:00:00Z',
-        },
-        {
-            id: '2',
-            title: 'ぐりとぐら',
-            author: 'なかがわ りえこ',
-            imageUrl: '',
-            readCount: 2,
-            rating: 4,
-            review: 'かすてらが おいしそう！',
-            readDate: '2025-09-25',
-            createdAt: '2025-09-25T10:00:00Z',
-        },
-    ]);
-
+    const [records, setRecords] = useState<ReadingRecord[]>([]);
     const [wishlist, setWishlist] = useState<WishlistBook[]>([]);
-    const [selectedChildId, setSelectedChildId] = useState<string | null>(null);  // ← 追加
+    const [selectedChildId, setSelectedChildId] = useState<string | null>(null);
 
-    const addRecord = (newRecord: Omit<ReadingRecord, 'id' | 'createdAt'>) => {
-        const record: ReadingRecord = {
-            ...newRecord,
-            id: Date.now().toString(),
-            createdAt: new Date().toISOString(),
-        };
-        setRecords([record, ...records]);
+    // 初回ロード時にSupabaseからデータを取得
+    useEffect(() => {
+        fetchRecords();
+    }, []);
+
+    const fetchRecords = async () => {
+        const { data, error } = await supabase
+            .from('reading_records')
+            .select('*')
+            .order('created_at', { ascending: false });
+
+        if (error) {
+            console.error('データ取得エラー:', error);
+        } else if (data) {
+            const formattedRecords: ReadingRecord[] = data.map((record) => ({
+                id: record.id,
+                title: record.title,
+                author: record.author,
+                imageUrl: record.image_url || undefined,
+                readDate: record.read_date,
+                rating: record.rating || 0,
+                review: record.review || undefined,
+                createdAt: record.created_at,
+            }));
+            setRecords(formattedRecords);
+        }
     };
 
-    const deleteRecord = (id: string) => {
-        setRecords(records.filter(record => record.id !== id));
+    const addRecord = async (newRecord: Omit<ReadingRecord, "id" | "createdAt">) => {
+        console.log('送信するデータ:', {
+            title: newRecord.title,
+            author: newRecord.author,
+            image_url: newRecord.imageUrl,
+            read_date: newRecord.readDate,
+            rating: newRecord.rating,
+            review: newRecord.review,
+        }); // ← デバッグ用
+
+
+        const { data, error } = await supabase
+            .from('reading_records')
+            .insert([{
+                title: newRecord.title,
+                author: newRecord.author,
+                image_url: newRecord.imageUrl,
+                read_date: newRecord.readDate,
+                rating: newRecord.rating,
+                review: newRecord.review,
+            }])
+            .select()
+            .single();
+
+        if (error) {
+            console.error('追加エラー:', error);
+            alert('保存に失敗しました');
+        } else {
+            await fetchRecords();
+        }
     };
 
-    const updateRecord = (id: string, updatedData: Omit<ReadingRecord, 'id' | 'createdAt'>) => {
-        setRecords(records.map(record =>
-            record.id === id ? { ...record, ...updatedData } : record
-        ));
+    const deleteRecord = async (id: string) => {
+        const { error } = await supabase
+            .from('reading_records')
+            .delete()
+            .eq('id', id);
+
+        if (error) {
+            console.error('削除エラー:', error);
+            alert('削除に失敗しました');
+        } else {
+            await fetchRecords();
+        }
+    };
+
+    const updateRecord = async (id: string, updatedData: Partial<ReadingRecord>) => {
+        const { error } = await supabase
+            .from('reading_records')
+            .update({
+                title: updatedData.title,
+                author: updatedData.author,
+                image_url: updatedData.imageUrl,
+                read_date: updatedData.readDate,
+                rating: updatedData.rating,
+                review: updatedData.review,
+            })
+            .eq('id', id);
+
+        if (error) {
+            console.error('更新エラー:', error);
+            alert('更新に失敗しました');
+        } else {
+            await fetchRecords();
+        }
     };
 
     const addToWishlist = (book: RecommendedBook) => {
-        const wishlistItem: WishlistBook = {
+        const newBook: WishlistBook = {
             id: Date.now().toString(),
             bookId: book.id,
             title: book.title,
@@ -78,11 +131,11 @@ export function AppProvider({ children }: AppProviderProps) {
             imageUrl: book.imageUrl,
             addedAt: new Date().toISOString(),
         };
-        setWishlist([wishlistItem, ...wishlist]);
+        setWishlist([...wishlist, newBook]);
     };
 
     const removeFromWishlist = (id: string) => {
-        setWishlist(wishlist.filter(item => item.id !== id));
+        setWishlist(wishlist.filter((book) => book.id !== id));
     };
 
     return (
@@ -90,8 +143,8 @@ export function AppProvider({ children }: AppProviderProps) {
             value={{
                 records,
                 wishlist,
-                selectedChildId,  // ← 追加
-                setSelectedChildId,  // ← 追加
+                selectedChildId,
+                setSelectedChildId,
                 addRecord,
                 deleteRecord,
                 updateRecord,
@@ -106,8 +159,8 @@ export function AppProvider({ children }: AppProviderProps) {
 
 export function useApp() {
     const context = useContext(AppContext);
-    if (!context) {
-        throw new Error('useApp must be used within AppProvider');
+    if (context === undefined) {
+        throw new Error("useApp must be used within an AppProvider");
     }
     return context;
 }

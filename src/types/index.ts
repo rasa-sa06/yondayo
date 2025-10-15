@@ -1,11 +1,10 @@
-// types/index.ts
 // 読書記録の型
 export type ReadingRecord = {
     id: string;
     title: string;
     author: string;
     imageUrl?: string;
-    readCount: number;
+    // readCount: number;  // ← 削除
     rating: number;
     review?: string;
     readDate: string;

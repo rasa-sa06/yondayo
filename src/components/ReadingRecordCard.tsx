@@ -42,7 +42,8 @@ export function ReadingRecordCard({ record, onClick }: ReadingRecordCardProps) {
                     <p className="text-sm text-gray-600 m-0">{record.author}</p>
                     <div className="flex items-center gap-3 flex-wrap">
                         <StarRating rating={record.rating} readonly size="small" />
-                        <span className="text-sm text-brown">よんだ かいすう: {record.readCount}かい</span>
+                        {/* <span className="text-sm text-brown">よんだ かいすう: {record.readCount}かい</span> */}
+                        {/* ↑ 読んだ回数は後で追加するかも */}
                     </div>
                     <p className="text-xs text-gray-500 m-0">
                         {formatDate(record.readDate)}
