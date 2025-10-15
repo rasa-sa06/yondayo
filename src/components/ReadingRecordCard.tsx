@@ -1,4 +1,3 @@
-// components/ReadingRecordCard.tsx
 import Image from "next/image";
 import { Card } from "./Card";
 import { StarRating } from "./StarRating";
