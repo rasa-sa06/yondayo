@@ -31,6 +31,7 @@ export function AppProvider({ children }: AppProviderProps) {
     // 初回ロード時にSupabaseからデータを取得
     useEffect(() => {
         fetchRecords();
+        fetchWishlist();
     }, []);
 
     const fetchRecords = async () => {
@@ -123,20 +124,60 @@ export function AppProvider({ children }: AppProviderProps) {
         }
     };
 
-    const addToWishlist = (book: RecommendedBook) => {
-        const newBook: WishlistBook = {
-            id: Date.now().toString(),
-            bookId: book.id,
-            title: book.title,
-            author: book.author,
-            imageUrl: book.imageUrl,
-            addedAt: new Date().toISOString(),
-        };
-        setWishlist([...wishlist, newBook]);
+    // よみたい本を取得
+    const fetchWishlist = async () => {
+        const { data, error } = await supabase
+            .from('wishlist_books')
+            .select('*')
+            .order('added_at', { ascending: false });
+        if (error) {
+            console.error('よみたい本取得エラー:', error);
+        } else if (data) {
+            const formattedWishlist: WishlistBook[] = data.map((book) => ({
+                id: book.id,
+                bookId: book.book_id || '',
+                title: book.title,
+                author: book.author,
+                imageUrl: book.image_url || undefined,
+                addedAt: book.created_at,
+            }));
+            setWishlist(formattedWishlist);
+        }
     };
 
-    const removeFromWishlist = (id: string) => {
-        setWishlist(wishlist.filter((book) => book.id !== id));
+    // よみたい本に追加
+    const addToWishlist = async (book: RecommendedBook) => {
+        const { data, error } = await supabase
+            .from('wishlist_books')
+            .insert([{
+                book_id: book.id,
+                title: book.title,
+                author: book.author,
+                image_url: book.imageUrl,
+            }])
+            .select()
+            .single();
+
+        if (error) {
+            console.error('よみたい本追加エラー:', error);
+            alert('よみたい本の追加に失敗しました');
+        } else {
+            await fetchWishlist();
+        }
+    };
+
+    const removeFromWishlist = async (id: string) => {
+        const { error } = await supabase
+            .from('wishlist_books')
+            .delete()
+            .eq('id', id);
+
+        if (error) {
+            console.error('よみたい本削除エラー:', error);
+            alert('よみたい本の削除に失敗しました');
+        } else {
+            await fetchWishlist();
+        }
     };
 
     return (
