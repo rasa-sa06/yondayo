@@ -13,8 +13,8 @@ type AppContextType = {
     addRecord: (record: Omit<ReadingRecord, 'id' | 'createdAt'>) => Promise<void>;
     deleteRecord: (id: string) => Promise<void>;
     updateRecord: (id: string, updatedData: Partial<ReadingRecord>) => Promise<void>;
-    addToWishlist: (book: RecommendedBook) => void;
-    removeFromWishlist: (id: string) => void;
+    addToWishlist: (book: RecommendedBook) => Promise<void>;
+    removeFromWishlist: (id: string) => Promise<void>;
 };
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
