@@ -129,7 +129,7 @@ export function AppProvider({ children }: AppProviderProps) {
         const { data, error } = await supabase
             .from('wishlist_books')
             .select('*')
-            .order('added_at', { ascending: false });
+            .order('created_at', { ascending: false });
         if (error) {
             console.error('よみたい本取得エラー:', error);
         } else if (data) {
@@ -147,6 +147,8 @@ export function AppProvider({ children }: AppProviderProps) {
 
     // よみたい本に追加
     const addToWishlist = async (book: RecommendedBook) => {
+        console.log('追加する本:', book); // ← デバック
+
         const { data, error } = await supabase
             .from('wishlist_books')
             .insert([{
@@ -158,10 +160,13 @@ export function AppProvider({ children }: AppProviderProps) {
             .select()
             .single();
 
+        console.log('Supabaseレスポンス:', { data, error }); // ← デバック
+
         if (error) {
-            console.error('よみたい本追加エラー:', error);
+            console.error('よみたい本追加エラー:', JSON.stringify(error, null, 2)); // ← デバック
             alert('よみたい本の追加に失敗しました');
         } else {
+            console.log('追加成功！'); //← デバック
             await fetchWishlist();
         }
     };

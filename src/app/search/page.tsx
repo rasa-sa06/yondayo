@@ -221,8 +221,8 @@ export default function Search() {
                                         <Button
                                             variant="primary"
                                             size="small"
-                                            onClick={() => {
-                                                addToWishlist(book);
+                                            onClick={async () => {
+                                                await addToWishlist(book);
                                                 alert('よみたい ほんに ついか しました！');
                                             }}
                                         >
