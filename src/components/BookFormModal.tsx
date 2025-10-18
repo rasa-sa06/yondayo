@@ -21,7 +21,7 @@ export function BookFormModal({
         title: '',
         author: '',
         imageUrl: '',
-        readCount: 1,
+        // readCount: 1, 後で使うかも
         rating: 0,
         review: '',
         readDate: new Date().toISOString().split('T')[0],
@@ -33,7 +33,7 @@ export function BookFormModal({
                 title: initialData.title || '',
                 author: initialData.author || '',
                 imageUrl: initialData.imageUrl || '',
-                readCount: initialData.readCount || 1,
+                // readCount: initialData.readCount || 1,　後で使うかも
                 rating: initialData.rating || 0,
                 review: initialData.review || '',
                 readDate: initialData.readDate || new Date().toISOString().split('T')[0],
@@ -43,7 +43,7 @@ export function BookFormModal({
                 title: '',
                 author: '',
                 imageUrl: '',
-                readCount: 1,
+                // readCount: 1,　後で使うかも
                 rating: 0,
                 review: '',
                 readDate: new Date().toISOString().split('T')[0],
@@ -52,8 +52,8 @@ export function BookFormModal({
     }, [initialData, isOpen]);
 
     const handleSubmit = () => {
-        if (!formData.title || !formData.author) {
-            alert('タイトルと さくしゃは ひつよう です');
+        if (!formData.title) {
+            alert('タイトルは ひつよう です');
             return;
         }
         if (formData.rating === 0) {
@@ -97,7 +97,7 @@ export function BookFormModal({
                     </div>
 
                     <div className="mb-5">
-                        <label className="block mb-2 font-medium text-brown text-base">さくしゃ *</label>
+                        <label className="block mb-2 font-medium text-brown text-base">さくしゃ</label>
                         <input
                             type="text"
                             value={formData.author}
