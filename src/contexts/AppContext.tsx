@@ -46,10 +46,10 @@ export function AppProvider({ children }: AppProviderProps) {
             const formattedRecords: ReadingRecord[] = data.map((record) => ({
                 id: record.id,
                 title: record.title,
-                author: record.author,
+                author: record.author || '',
                 imageUrl: record.image_url || undefined,
                 readDate: record.read_date,
-                rating: record.rating || 0,
+                rating: record.rating,
                 review: record.review || undefined,
                 createdAt: record.created_at,
             }));
@@ -137,7 +137,7 @@ export function AppProvider({ children }: AppProviderProps) {
                 id: book.id,
                 bookId: book.book_id || '',
                 title: book.title,
-                author: book.author,
+                author: book.author || '',
                 imageUrl: book.image_url || undefined,
                 addedAt: book.created_at,
             }));
