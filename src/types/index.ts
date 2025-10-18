@@ -2,9 +2,9 @@
 export type ReadingRecord = {
     id: string;
     title: string;
-    author: string;
+    author?: string;
     imageUrl?: string;
-    // readCount: number;  // ← 削除
+    // readCount: number;  // ← 後で使うかも
     rating: number;
     review?: string;
     readDate: string;
@@ -32,7 +32,7 @@ export type WishlistBook = {
     id: string;
     bookId: string;
     title: string;
-    author: string;
+    author?: string;
     imageUrl?: string;
     addedAt: string;
 };
