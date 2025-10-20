@@ -31,7 +31,6 @@ export type RecommendedBook = {
 export type WishlistBook = {
     id: string;
     userId: string;
-    bookId: string;
     title: string;
     author?: string;
     imageUrl?: string;

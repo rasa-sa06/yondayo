@@ -59,7 +59,7 @@ export default function Wishlist() {
                                     <h3 className="text-lg font-bold text-brown m-0">{book.title}</h3>
                                     <p className="text-sm text-gray-600 m-0">{book.author}</p>
                                     <p className="text-xs text-gray-500 m-0">
-                                        ついか した ひ: {formatDate(book.addedAt)}
+                                        ついか した ひ: {formatDate(book.createdAt)}
                                     </p>
                                 </div>
                                 <div className="flex-shrink-0">
