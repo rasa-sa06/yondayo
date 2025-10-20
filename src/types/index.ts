@@ -59,3 +59,24 @@ export type BookCategory =
     | 'あそび'
     | 'シリーズ'
     | 'しぜん';
+
+// 子どもの型
+export type Child = {
+    id: string;
+    userId: string;
+    name: string;
+    birthday: string;
+    createdAt: string;
+    updatedAt: string;
+};
+
+// 本の型
+export type Book = {
+    id: string;
+    userId: string;
+    title: string;
+    author?: string;
+    imageUrl?: string;
+    createdAt: string;
+    updatedAt: string;
+};
