@@ -1,9 +1,9 @@
 // 読書記録の型
 export type ReadingRecord = {
     id: string;
-    title: string;
-    author?: string;
-    imageUrl?: string;
+    userId: string;
+    childId: string;
+    bookId: string;
     // readCount: number;  // ← 後で使うかも
     rating: number;
     review?: string;
@@ -30,18 +30,20 @@ export type RecommendedBook = {
 // よみたい本の型
 export type WishlistBook = {
     id: string;
+    userId: string;
     bookId: string;
     title: string;
     author?: string;
     imageUrl?: string;
-    addedAt: string;
+    createdAt: string;
+    updatedAt: string;
 };
 
-// スタンプの型
-export type StampCard = {
-    stamps: number;
-    level: number;
-};
+// スタンプの型　（今のところは必要なし）
+// export type StampCard = {
+//     stamps: number;
+//     level: number;
+// };
 
 // 年齢カテゴリ
 export type AgeCategory = '0歳' | '1歳' | '2歳' | '3歳' | '4歳' | '5歳' | '6歳' | '小学校低学年';
