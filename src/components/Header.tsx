@@ -11,19 +11,14 @@ type Child = {
 };
 
 export function Header() {
-    // 後でSupabaseから取得
     const [currentUser] = useState("ママさん");
-    const [children] = useState<Child[]>([
-        { id: '1', name: 'たろうくん', age: 5 },
-        { id: '2', name: 'はなちゃん', age: 3 },
-    ]);
 
-    const { selectedChildId, setSelectedChildId } = useApp();
+    const { selectedChildId, setSelectedChildId, childrenList } = useApp();
     const [isOpen, setIsOpen] = useState(false);
     const dropdownRef = useRef<HTMLDivElement>(null);
 
     // 選択された子どもの情報を取得
-    const selectedChild = children.find(child => child.id === selectedChildId);
+    const selectedChild = childrenList.find(child => child.id === selectedChildId);
     const displayName = selectedChild ? selectedChild.name : 'こどもを　えらぶ';
 
     // 現在の日付を取得
@@ -82,9 +77,9 @@ export function Header() {
                             <span className="text-xs">{isOpen ? '▲' : '▼'}</span>
                         </button>
 
-                        {isOpen && children.length > 0 && (
+                        {isOpen && childrenList.length > 0 && (
                             <div className="absolute right-0 mt-1 bg-white border-2 border-cyan rounded-xl shadow-lg z-50 min-w-[120px] w-max">
-                                {children.map((child) => (
+                                {childrenList.map((child) => (
                                     <button
                                         key={child.id}
                                         onClick={() => handleSelectChild(child.id)}

@@ -25,6 +25,8 @@ type AppContextType = {
     // children の CRUD
     fetchChildren: () => Promise<void>;  // ← 追加
     addChild: (child: Omit<Child, 'id' | 'createdAt' | 'updatedAt'>) => Promise<void>;  // ← 追加
+    updateChild: (id: string, updatedData: Partial<Child>) => Promise<void>;  // ← 追加
+    deleteChild: (id: string) => Promise<void>;  // ← 追加
 };
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -280,13 +282,47 @@ export function AppProvider({ children }: AppProviderProps) {
         }
     };
 
+    // child を更新
+    const updateChild = async (id: string, updatedData: Partial<Child>): Promise<void> => {
+        const { error } = await supabase
+            .from('children')
+            .update({
+                name: updatedData.name,
+                birthday: updatedData.birthday,
+            })
+            .eq('id', id);
+
+        if (error) {
+            console.error('子どもの更新エラー:', error);
+            alert('子どもの更新に失敗しました');
+        } else {
+            await fetchChildren();
+        }
+    };
+
+    // child を削除
+    const deleteChild = async (id: string): Promise<void> => {
+        const { error } = await supabase
+            .from('children')
+            .delete()
+            .eq('id', id);
+
+        if (error) {
+            console.error('子どもの削除エラー:', error);
+            alert('子どもの削除に失敗しました');
+        } else {
+            await fetchChildren();
+        }
+    };
+
+
     return (
         <AppContext.Provider
             value={{
                 records,
                 wishlist,
-                books,  // ← 追加
-                childrenList,  // ← 追加
+                books,
+                childrenList,
                 selectedChildId,
                 setSelectedChildId,
                 addRecord,
@@ -294,10 +330,12 @@ export function AppProvider({ children }: AppProviderProps) {
                 updateRecord,
                 addToWishlist,
                 removeFromWishlist,
-                fetchBooks,  // ← 追加
-                addBook,  // ← 追加
-                fetchChildren,  // ← 追加
-                addChild,  // ← 追加
+                fetchBooks,
+                addBook,
+                fetchChildren,
+                addChild,
+                updateChild,   // ← 追加
+                deleteChild,    // ← 追加
             }}
         >
             {children}
