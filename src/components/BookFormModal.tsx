@@ -1,23 +1,20 @@
-// components/BookFormModal.tsx
 import { useState, useEffect } from 'react';
 import { Button } from './Button';
 import { StarRating } from './StarRating';
-import type { ReadingRecord } from '../types';
+import type { ReadingRecord, ReadingRecordWithBook, Book, Child } from '../types';
+import { useApp } from '../contexts/AppContext';
 
 type BookFormModalProps = {
     isOpen: boolean;
     onClose: () => void;
-    onSubmit: (record: Omit<ReadingRecord, 'id' | 'createdAt'>) => void;
-    initialData?: ReadingRecord;
+    onSubmit: (record: Omit<ReadingRecord, 'id' | 'createdAt' | 'updatedAt'>) => void;
+    initialData?: ReadingRecordWithBook;
 };
 
-export function BookFormModal({
-    isOpen,
-    onClose,
-    onSubmit,
-    initialData,
-}: BookFormModalProps) {
+export function BookFormModal({ isOpen, onClose, onSubmit, initialData, }: BookFormModalProps) {
+    const { books, selectedChild, addBook } = useApp();
     const [formData, setFormData] = useState({
+        bookId: '',
         title: '',
         author: '',
         imageUrl: '',
@@ -27,31 +24,67 @@ export function BookFormModal({
         readDate: new Date().toISOString().split('T')[0],
     });
 
+    const [isNewBook, setIsNewBook] = useState(true);
+    const [filteredBooks, setFilteredBooks] = useState<Book[]>([]);
+
+    // 予測候補リスト
+    const [suggestions, setSuggestions] = useState<Book[]>([]);
+
+
     useEffect(() => {
         if (initialData) {
             setFormData({
-                title: initialData.title || '',
-                author: initialData.author || '',
-                imageUrl: initialData.imageUrl || '',
                 // readCount: initialData.readCount || 1,　後で使うかも
+                bookId: initialData.bookId,
+                title: initialData.book.title || '',
+                author: initialData.book.author || '',
+                imageUrl: initialData.book.imageUrl || '',
                 rating: initialData.rating || 0,
                 review: initialData.review || '',
                 readDate: initialData.readDate || new Date().toISOString().split('T')[0],
             });
+            setIsNewBook(!initialData.bookId);
         } else {
             setFormData({
+                bookId: '',
                 title: '',
                 author: '',
                 imageUrl: '',
-                // readCount: 1,　後で使うかも
                 rating: 0,
                 review: '',
                 readDate: new Date().toISOString().split('T')[0],
             });
+            setIsNewBook(true);
         }
+        setFilteredBooks([]);
     }, [initialData, isOpen]);
 
-    const handleSubmit = () => {
+    // タイトル入力時の予測変換
+    const handleTitleChange = (title: string) => {
+        setFormData({ ...formData, title, bookId: '' });
+        if (title.length > 0) {
+            const matches = books.filter((b) =>
+                b.title.toLowerCase().includes(title.toLowerCase())
+            );
+            setFilteredBooks(matches);
+        } else {
+            setFilteredBooks([]);
+        }
+    };
+
+    const handleSelectBook = (book: Book) => {
+        setFormData({
+            ...formData,
+            bookId: book.id,
+            title: book.title,
+            author: book.author || '',
+            imageUrl: book.imageUrl || '',
+        });
+        setIsNewBook(false);
+        setFilteredBooks([]);
+    };
+
+    const handleSubmit = async () => {
         if (!formData.title) {
             alert('タイトルは ひつよう です');
             return;
@@ -60,7 +93,35 @@ export function BookFormModal({
             alert('ひょうかを えらんで ください');
             return;
         }
-        onSubmit(formData);
+        if (!selectedChild) {
+            alert('子どもが選択されていません');
+            return;
+        }
+
+        let finalBookId = formData.bookId;
+
+        // 新しい本なら追加
+        if (!finalBookId) {
+            const bookId = await addBook({
+                userId: selectedChild.userId,
+                title: formData.title,
+                author: formData.author,
+                imageUrl: formData.imageUrl,
+            });
+            if (!bookId) {
+                alert('ほんの とうろくに しっぱい しました');
+                return;
+            }
+            finalBookId = bookId;
+        }
+        onSubmit({
+            userId: selectedChild.userId,
+            childId: selectedChild.id,
+            bookId: finalBookId,
+            rating: formData.rating,
+            review: formData.review,
+            readDate: formData.readDate,
+        });
         onClose();
     };
 
@@ -85,17 +146,33 @@ export function BookFormModal({
                     </button>
                 </div>
                 <div className="p-5">
-                    <div className="mb-5">
+                    {/* タイトル入力 */}
+                    <div className="mb-5 relative">
                         <label className="block mb-2 font-medium text-brown text-base">タイトル *</label>
                         <input
                             type="text"
                             value={formData.title}
-                            onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                            onChange={(e) => handleTitleChange(e.target.value)}
                             className="w-full p-3 border-2 border-cyan rounded-xl font-mplus text-base text-brown bg-white focus:outline-none focus:border-[#99e6e6]"
                             placeholder="ほんの なまえを いれて ください"
                         />
+                        {/* 予測変換 */}
+                        {filteredBooks.length > 0 && (
+                            <ul className="absolute z-[100] bg-white border border-cyan rounded-xl mt-1 w-full max-h-40 overflow-y-auto">
+                                {filteredBooks.map((b) => (
+                                    <li
+                                        key={b.id}
+                                        className="p-2 cursor-pointer hover:bg-cyan/30"
+                                        onClick={() => handleSelectBook(b)}
+                                    >
+                                        {b.title} {b.author ? `- ${b.author}` : ''}
+                                    </li>
+                                ))}
+                            </ul>
+                        )}
                     </div>
 
+                    {/* 著者 */}
                     <div className="mb-5">
                         <label className="block mb-2 font-medium text-brown text-base">さくしゃ</label>
                         <input
@@ -107,6 +184,7 @@ export function BookFormModal({
                         />
                     </div>
 
+                    {/* 画像URL */}
                     <div className="mb-5">
                         <label className="block mb-2 font-medium text-brown text-base">がぞう URL</label>
                         <input
@@ -129,6 +207,7 @@ export function BookFormModal({
                         />
                     </div> */}
 
+                    {/* 評価 */}
                     <div className="mb-5">
                         <label className="block mb-2 font-medium text-brown text-base">ひょうか *</label>
                         <StarRating
@@ -138,6 +217,7 @@ export function BookFormModal({
                         />
                     </div>
 
+                    {/* 感想 */}
                     <div className="mb-5">
                         <label className="block mb-2 font-medium text-brown text-base">かんそう</label>
                         <textarea
@@ -149,6 +229,7 @@ export function BookFormModal({
                         />
                     </div>
 
+                    {/* 読んだ日 */}
                     <div className="mb-5">
                         <label className="block mb-2 font-medium text-brown text-base">よんだ ひ</label>
                         <input

@@ -80,3 +80,8 @@ export type Book = {
     createdAt: string;
     updatedAt: string;
 };
+
+// 読書記録 + Book情報
+export type ReadingRecordWithBook = ReadingRecord & {
+    book: Book;
+};

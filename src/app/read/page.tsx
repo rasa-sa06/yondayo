@@ -1,30 +1,55 @@
 "use client";
 
-
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import clsx from 'clsx';
 import { Button } from '../../components/Button';
 import { ReadingRecordCard } from '../../components/ReadingRecordCard';
 import { BookFormModal } from '../../components/BookFormModal';
-import type { ReadingRecord } from '../../types';
+import type { ReadingRecord, ReadingRecordWithBook } from '../../types';
 import { useApp } from "../../contexts/AppContext";
 
 export default function Read() {
-    const { records, addRecord, deleteRecord, updateRecord } = useApp();
+    const { records, books, addRecord, deleteRecord, updateRecord } = useApp();
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const [editingRecord, setEditingRecord] = useState<ReadingRecord | null>(null);
+    // 型をReadingRecordWithBookに変更
+    const [editingRecord, setEditingRecord] = useState<ReadingRecordWithBook | null>(null);
     const [searchQuery, setSearchQuery] = useState('');
     const [sortBy, setSortBy] = useState<'date' | 'title' | 'rating'>('date');
 
+    // recordsとbooksを結合したデータ（ReadingRecordWithBook型に）
+    const recordsWithBooks = useMemo((): ReadingRecordWithBook[] => {
+        return records.map(record => {
+            const book = books.find(b => b.id === record.bookId);
+            if (!book) {
+                // bookが見つからない場合のフォールバック
+                return {
+                    ...record,
+                    book: {
+                        id: record.bookId,
+                        userId: record.userId,
+                        title: '不明な本',
+                        author: '不明', // optionalだけど値を設定
+                        imageUrl: undefined,
+                        createdAt: new Date().toISOString(),
+                        updatedAt: new Date().toISOString(),
+                    }
+                };
+            }
+            return {
+                ...record,
+                book,
+            };
+        });
+    }, [records, books]);
+
     // 検索フィルター
-    const filteredRecords = records.filter((record) => {
+    const filteredRecords = recordsWithBooks.filter((record) => {
         const query = searchQuery.toLowerCase();
         return (
-            record.title.toLowerCase().includes(query) ||
-            record.author.toLowerCase().includes(query)
+            record.book.title.toLowerCase().includes(query) ||
+            (record.book.author?.toLowerCase() ?? '').includes(query)
         );
-    }
-    );
+    });
 
     // ソート
     const sortedRecords = [...filteredRecords].sort((a, b) => {
@@ -32,7 +57,7 @@ export default function Read() {
             case 'date':
                 return new Date(b.readDate).getTime() - new Date(a.readDate).getTime();
             case 'title':
-                return a.title.localeCompare(b.title);
+                return a.book.title.localeCompare(b.book.title);
             case 'rating':
                 return b.rating - a.rating;
             default:
@@ -40,18 +65,19 @@ export default function Read() {
         }
     });
 
-    const handleEdit = (record: ReadingRecord) => {
+    const handleEdit = (record: ReadingRecordWithBook) => {
         setEditingRecord(record);
         setIsModalOpen(true);
     };
 
-    const handleSubmit = (recordData: Omit<ReadingRecord, 'id' | 'createdAt'>) => {
+    const handleSubmit = (recordData: Omit<ReadingRecord, 'id' | 'createdAt' | 'updatedAt'>) => {
         if (editingRecord) {
             updateRecord(editingRecord.id, recordData);
         } else {
             addRecord(recordData);
         }
         setEditingRecord(null);
+        setIsModalOpen(false);
     };
 
     const handleCloseModal = () => {

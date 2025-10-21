@@ -8,25 +8,28 @@ import type { ReadingRecord, WishlistBook, RecommendedBook, Book, Child } from '
 type AppContextType = {
     records: ReadingRecord[];
     wishlist: WishlistBook[];
-    books: Book[];  // ← 追加
-    childrenList: Child[];  // ← 追加
+    books: Book[];
+    childrenList: Child[];
+    selectedChild: Child | null;           // 現在選択中の子ども
+    setSelectedChild: (child: Child | null) => void;
     selectedChildId: string | null;
     setSelectedChildId: (id: string | null) => void;
-    addRecord: (record: Omit<ReadingRecord, 'id' | 'createdAt'>) => Promise<void>;
+
+    addRecord: (record: Omit<ReadingRecord, "id" | "createdAt" | "updatedAt">) => Promise<void>;
     deleteRecord: (id: string) => Promise<void>;
     updateRecord: (id: string, updatedData: Partial<ReadingRecord>) => Promise<void>;
     addToWishlist: (book: RecommendedBook) => Promise<void>;
     removeFromWishlist: (id: string) => Promise<void>;
 
     // books の CRUD
-    fetchBooks: () => Promise<void>;  // ← 追加
-    addBook: (book: Omit<Book, 'id' | 'createdAt' | 'updatedAt'>) => Promise<string | null>;  // ← 追加（book.idを返す）
+    fetchBooks: () => Promise<void>;
+    addBook: (book: Omit<Book, 'id' | 'createdAt' | 'updatedAt'>) => Promise<string | null>;
 
     // children の CRUD
-    fetchChildren: () => Promise<void>;  // ← 追加
-    addChild: (child: Omit<Child, 'id' | 'createdAt' | 'updatedAt'>) => Promise<void>;  // ← 追加
-    updateChild: (id: string, updatedData: Partial<Child>) => Promise<void>;  // ← 追加
-    deleteChild: (id: string) => Promise<void>;  // ← 追加
+    fetchChildren: () => Promise<void>;
+    addChild: (child: Omit<Child, 'id' | 'createdAt' | 'updatedAt'>) => Promise<void>;
+    updateChild: (id: string, updatedData: Partial<Child>) => Promise<void>;
+    deleteChild: (id: string) => Promise<void>;
 };
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -35,12 +38,42 @@ type AppProviderProps = {
     children: ReactNode;
 };
 
+// localStorage用キー
+const CHILD_ID_KEY = 'selectedChildId';
+
 export function AppProvider({ children }: AppProviderProps) {
     const [records, setRecords] = useState<ReadingRecord[]>([]);
     const [wishlist, setWishlist] = useState<WishlistBook[]>([]);
     const [books, setBooks] = useState<Book[]>([]);  // ← 追加
     const [childrenList, setChildrenList] = useState<Child[]>([]);  // ← 追加（children は予約語なので childrenList）
-    const [selectedChildId, setSelectedChildId] = useState<string | null>(null);
+
+
+    // 初期値を localStorage から取得
+    const [selectedChildId, _setSelectedChildId] = useState<string | null>(() => {
+        if (typeof window !== 'undefined') return localStorage.getItem(CHILD_ID_KEY) || null;
+        return null;
+    });
+
+    const [selectedChild, setSelectedChild] = useState<Child | null>(null);
+
+    // ラッパー関数で localStorage に保存
+    const setSelectedChildId = (id: string | null) => {
+        _setSelectedChildId(id);
+        if (typeof window !== 'undefined') {
+            if (id) localStorage.setItem(CHILD_ID_KEY, id);
+            else localStorage.removeItem(CHILD_ID_KEY);
+        }
+    };
+
+    // selectedChildId が変わったら selectedChild を自動でセット
+    useEffect(() => {
+        if (selectedChildId) {
+            const child = childrenList.find(c => c.id === selectedChildId) || null;
+            setSelectedChild(child);
+        } else {
+            setSelectedChild(null);
+        }
+    }, [selectedChildId, childrenList]);
 
     // 初回ロード時にSupabaseからデータを取得
     useEffect(() => {
@@ -50,6 +83,7 @@ export function AppProvider({ children }: AppProviderProps) {
         fetchChildren();
     }, []);
 
+    // ------------------- CRUD: ReadingRecords -------------------
     const fetchRecords = async () => {
         const { data, error } = await supabase
             .from('reading_records')
@@ -110,7 +144,7 @@ export function AppProvider({ children }: AppProviderProps) {
         }
     };
 
-    const updateRecord = async (id: string, updatedData: Partial<ReadingRecord>) => {
+    const updateRecord = async (id: string, updatedData: Partial<ReadingRecord>): Promise<void> => {
         const { error } = await supabase
             .from('reading_records')
             .update({
@@ -131,7 +165,7 @@ export function AppProvider({ children }: AppProviderProps) {
         }
     };
 
-    // よみたい本を取得
+    /// ------------------- CRUD: Wishlist -------------------
     const fetchWishlist = async () => {
         const { data, error } = await supabase
             .from('wishlist_books')
@@ -142,13 +176,13 @@ export function AppProvider({ children }: AppProviderProps) {
         } else if (data) {
             const formattedWishlist: WishlistBook[] = data.map((book) => ({
                 id: book.id,
-                userId: book.user_id,  // ← 追加
+                userId: book.user_id,
                 title: book.title,
                 author: book.author || undefined,  // ← '' から undefined に変更
                 imageUrl: book.image_url || undefined,
-                rating: book.rating || undefined,  // ← 追加
-                createdAt: book.created_at,  // ← addedAt から変更
-                updatedAt: book.updated_at,  // ← 追加
+                rating: book.rating || undefined,
+                createdAt: book.created_at,
+                updatedAt: book.updated_at,
             }));
             setWishlist(formattedWishlist);
         }
@@ -156,8 +190,6 @@ export function AppProvider({ children }: AppProviderProps) {
 
     // よみたい本に追加
     const addToWishlist = async (book: RecommendedBook) => {
-        console.log('追加する本:', book); // ← デバック
-
         const { data, error } = await supabase
             .from('wishlist_books')
             .insert([{
@@ -169,16 +201,8 @@ export function AppProvider({ children }: AppProviderProps) {
             }])
             .select()
             .single();
-
-        console.log('Supabaseレスポンス:', { data, error }); // ← デバック
-
-        if (error) {
-            console.error('よみたい本追加エラー:', JSON.stringify(error, null, 2)); // ← デバック
-            alert('よみたい本の追加に失敗しました');
-        } else {
-            console.log('追加成功！'); //← デバック
-            await fetchWishlist();
-        }
+        if (error) { console.error(error); alert('よみたい本の追加に失敗しました'); }
+        else await fetchWishlist();
     };
 
     const removeFromWishlist = async (id: string) => {
@@ -187,15 +211,11 @@ export function AppProvider({ children }: AppProviderProps) {
             .delete()
             .eq('id', id);
 
-        if (error) {
-            console.error('よみたい本削除エラー:', error);
-            alert('よみたい本の削除に失敗しました');
-        } else {
-            await fetchWishlist();
-        }
+        if (error) { console.error(error); alert('よみたい本の削除に失敗しました'); }
+        else await fetchWishlist();
     };
 
-    // books を取得
+    // ------------------- CRUD: Books -------------------
     const fetchBooks = async () => {
         const { data, error } = await supabase
             .from('books')
@@ -240,8 +260,8 @@ export function AppProvider({ children }: AppProviderProps) {
         }
     };
 
-    // children を取得
-    const fetchChildren = async () => {
+    // ------------------- CRUD: Children -------------------
+    const fetchChildren = async (): Promise<void> => {
         const { data, error } = await supabase
             .from('children')
             .select('*')
@@ -258,7 +278,11 @@ export function AppProvider({ children }: AppProviderProps) {
                 createdAt: child.created_at,
                 updatedAt: child.updated_at,
             }));
+            // 🌟 初回選択：localStorage または先頭の子を自動選択
             setChildrenList(formattedChildren);
+            if (!selectedChildId && data.length) {
+                setSelectedChildId(data[0].id);
+            }
         }
     };
 
@@ -277,8 +301,9 @@ export function AppProvider({ children }: AppProviderProps) {
         if (error) {
             console.error('子どもの追加エラー:', error);
             alert('子どもの追加に失敗しました');
-        } else {
+        } else if (data) {
             await fetchChildren();
+            setSelectedChildId(data.id); // ← 追加：追加した子どもを自動選択
         }
     };
 
@@ -325,6 +350,8 @@ export function AppProvider({ children }: AppProviderProps) {
                 childrenList,
                 selectedChildId,
                 setSelectedChildId,
+                selectedChild,
+                setSelectedChild,
                 addRecord,
                 deleteRecord,
                 updateRecord,
