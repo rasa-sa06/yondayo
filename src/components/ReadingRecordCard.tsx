@@ -1,10 +1,10 @@
 import Image from "next/image";
 import { Card } from "./Card";
 import { StarRating } from "./StarRating";
-import type { ReadingRecord } from "../types";
+import type { ReadingRecordWithBook } from "../types";
 
 type ReadingRecordCardProps = {
-    record: ReadingRecord;
+    record: ReadingRecordWithBook;
     onClick?: () => void;
 };
 
@@ -21,10 +21,10 @@ export function ReadingRecordCard({ record, onClick }: ReadingRecordCardProps) {
         <Card hoverable onClick={onClick}>
             <div className="flex gap-4">
                 <div className="flex-shrink-0 w-20 h-[100px] relative">
-                    {record.imageUrl ? (
+                    {record.book.imageUrl ? (
                         <Image
-                            src={record.imageUrl}
-                            alt={record.title}
+                            src={record.book.imageUrl}
+                            alt={record.book.title}
                             fill
                             sizes="80px"
                             className="object-cover rounded-lg"
@@ -37,9 +37,9 @@ export function ReadingRecordCard({ record, onClick }: ReadingRecordCardProps) {
                 </div>
                 <div className="flex-1 flex flex-col gap-1.5">
                     <h3 className="text-lg font-bold text-brown m-0">
-                        {record.title}
+                        {record.book.title}
                     </h3>
-                    <p className="text-sm text-gray-600 m-0">{record.author}</p>
+                    <p className="text-sm text-gray-600 m-0">{record.book.author}</p>
                     <div className="flex items-center gap-3 flex-wrap">
                         <StarRating rating={record.rating} readonly size="small" />
                         {/* <span className="text-sm text-brown">よんだ かいすう: {record.readCount}かい</span> */}
