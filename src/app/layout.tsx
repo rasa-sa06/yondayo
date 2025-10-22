@@ -1,11 +1,9 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import { Header } from "../components/Header";
-import { MenuBar } from "../components/MenuBar";
-
 // Google Fontsの読み込み（Next.jsの推奨方法）
 import { M_PLUS_Rounded_1c } from "next/font/google";
 import { AppProvider } from "../contexts/AppContext";
+import { AppLayout } from "../components/AppLayout";
 
 const mPlusRounded = M_PLUS_Rounded_1c({
     weight: ["400", "500", "700"],
@@ -28,9 +26,9 @@ export default function RootLayout({
         <html lang="ja">
             <body className={mPlusRounded.variable}>
                 <AppProvider>
-                    <Header />
-                    {children}
-                    <MenuBar />
+                    <AppLayout>
+                        {children}
+                    </AppLayout>
                 </AppProvider>
             </body>
 
