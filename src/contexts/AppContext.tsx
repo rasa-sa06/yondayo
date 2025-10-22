@@ -83,12 +83,26 @@ export function AppProvider({ children }: AppProviderProps) {
         fetchChildren();
     }, []);
 
+    // selectedChildIdが変更されたら再取得
+    useEffect(() => {
+        if (selectedChildId) {
+            fetchRecords();
+            fetchWishlist();
+        }
+    }, [selectedChildId]);
+
     // ------------------- CRUD: ReadingRecords -------------------
     const fetchRecords = async () => {
-        const { data, error } = await supabase
+        let query = supabase  // ← まずqueryに格納してから条件追加
             .from('reading_records')
             .select('*')
             .order('created_at', { ascending: false });
+
+        if (selectedChildId) {
+            query = query.eq('child_id', selectedChildId);
+        }
+
+        const { data, error } = await query;
 
         if (error) {
             console.error('データ取得エラー:', error);
@@ -107,6 +121,7 @@ export function AppProvider({ children }: AppProviderProps) {
             setRecords(formattedRecords);
         }
     };
+
 
     const addRecord = async (newRecord: Omit<ReadingRecord, "id" | "createdAt">) => {
         const { data, error } = await supabase
