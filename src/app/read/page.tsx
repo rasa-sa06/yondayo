@@ -10,9 +10,7 @@ import { useApp } from "../../contexts/AppContext";
 
 export default function Read() {
     const { records, books, addRecord, deleteRecord, updateRecord } = useApp();
-    console.log('📚 books:', books);
-    console.log('📖 records:', records);
-    console.log('books length:', books.length);
+
     const [isModalOpen, setIsModalOpen] = useState(false);
     // 型をReadingRecordWithBookに変更
     const [editingRecord, setEditingRecord] = useState<ReadingRecordWithBook | null>(null);
@@ -21,11 +19,8 @@ export default function Read() {
 
     // recordsとbooksを結合したデータ（ReadingRecordWithBook型に）
     const recordsWithBooks = useMemo((): ReadingRecordWithBook[] => {
-        console.log('🔄 recordsWithBooks 再計算中');
-        console.log('records:', records.length, 'books:', books.length);
         return records.map(record => {
             const book = books.find(b => b.id === record.bookId);
-            console.log(`Record ${record.id} の bookId: ${record.bookId}, 見つかった? ${!!book}`);
             if (!book) {
                 // bookが見つからない場合のフォールバック
                 return {
