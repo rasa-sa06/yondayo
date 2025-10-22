@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import clsx from 'clsx';
 import { Button } from '../components/Button';
 import { ReadingRecordCard } from '../components/ReadingRecordCard';
@@ -8,13 +8,41 @@ import { BookFormModal } from '../components/BookFormModal';
 import Image from 'next/image'; // ← 追加
 import { useApp } from "../contexts/AppContext";
 import { useRouter } from "next/navigation";
+import type { ReadingRecordWithBook } from '../types';
 
 export default function Home() {
-    const { records, addRecord } = useApp();
+    const { records, books, addRecord } = useApp();
     const router = useRouter();
     const [isModalOpen, setIsModalOpen] = useState(false);
+
+    // recordsとbooksを結合したデータ
+    const recordsWithBooks = useMemo((): ReadingRecordWithBook[] => {
+        return records.map(record => {
+            const book = books.find(b => b.id === record.bookId);
+            if (!book) {
+                return {
+                    ...record,
+                    book: {
+                        id: record.bookId,
+                        userId: record.userId,
+                        title: '不明な本',
+                        author: '不明',
+                        imageUrl: undefined,
+                        createdAt: new Date().toISOString(),
+                        updatedAt: new Date().toISOString(),
+                    }
+                };
+            }
+            return {
+                ...record,
+                book,
+            };
+        });
+    }, [records, books]);
+
+
     // 最新3件を取得
-    const recentRecords = records.slice(0, 3);
+    const recentRecords = recordsWithBooks.slice(0, 3);
 
     return (
         <div className="max-w-[800px] mx-auto pb-5">
