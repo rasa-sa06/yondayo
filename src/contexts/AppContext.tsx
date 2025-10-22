@@ -182,16 +182,25 @@ export function AppProvider({ children }: AppProviderProps) {
 
     /// ------------------- CRUD: Wishlist -------------------
     const fetchWishlist = async () => {
-        const { data, error } = await supabase
+        let query = supabase
             .from('wishlist_books')
             .select('*')
             .order('created_at', { ascending: false });
+
+        // selectedChildIdがある場合はフィルタリング
+        if (selectedChildId) {
+            query = query.eq('child_id', selectedChildId);
+        }
+
+        const { data, error } = await query;
+
         if (error) {
             console.error('よみたい本取得エラー:', error);
         } else if (data) {
             const formattedWishlist: WishlistBook[] = data.map((book) => ({
                 id: book.id,
                 userId: book.user_id,
+                childId: book.child_id,
                 title: book.title,
                 author: book.author || undefined,  // ← '' から undefined に変更
                 imageUrl: book.image_url || undefined,
@@ -205,10 +214,16 @@ export function AppProvider({ children }: AppProviderProps) {
 
     // よみたい本に追加
     const addToWishlist = async (book: RecommendedBook) => {
+        if (!selectedChildId) {
+            alert('子どもを選択してください');
+            return;
+        }
+
         const { data, error } = await supabase
             .from('wishlist_books')
             .insert([{
                 user_id: '00000000-0000-0000-0000-000000000000',  // ← 一時的な値（認証実装後に修正）
+                child_id: selectedChildId,
                 title: book.title,
                 author: book.author,
                 image_url: book.imageUrl,
