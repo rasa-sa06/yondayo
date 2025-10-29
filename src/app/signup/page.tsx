@@ -1,26 +1,31 @@
 "use client";
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Logo } from '../../components/Logo';
 import { Button } from '../../components/Button';
+import { signUp } from '../../../lib/auth';
+import { supabase } from '../../../lib/supabase';
 import clsx from 'clsx';
 
 type Child = {
     id: string;
     name: string;
-    age: number | '';
+    birthday: string;
 };
 
 export default function Signup() {
+    const router = useRouter();
     const [email, setEmail] = useState('');
-    const [username, setUsername] = useState('');
+    const [name, setName] = useState('');   // username → name に変更（profilesテーブルに合わせる）
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
     const [children, setChildren] = useState<Child[]>([
-        { id: crypto.randomUUID(), name: '', age: '' },
-        { id: crypto.randomUUID(), name: '', age: '' },
+        { id: crypto.randomUUID(), name: '', birthday: '' },
     ]);
+    const [error, setError] = useState('');
+    const [loading, setLoading] = useState(false);
 
     const validateEmail = (email: string) => {
         // シンプルなメールフォーマットチェック
@@ -28,10 +33,12 @@ export default function Signup() {
         return emailRegex.test(email);
     };
 
-    const handleSignup = () => {
+    const handleSignup = async () => {
+        setError('');
         const errors: string[] = [];
 
-        if (!username.trim()) {
+        // バリデーション
+        if (!name.trim()) {
             errors.push('ユーザー名を入力してください');
         }
 
@@ -50,49 +57,69 @@ export default function Signup() {
         }
 
         if (errors.length > 0) {
-            alert(errors.join('\n'));
+            setError(errors.join('\n'));
             return;
         }
 
-        const filledChildren = children.filter(
-            (child) => child.name.trim() !== '' && child.age !== ''
-        );
+        setLoading(true);
 
-        console.log('新規登録:', {
-            email,
-            username,
-            password,
-            children: filledChildren,
-        });
+        try {
+            // 1. ユーザー登録（auth.users + profiles）
+            const { user } = await signUp(email, password, name);
 
-        alert('登録処理を実行しました！');
+            // 2. 子ども情報を登録（入力されている場合のみ）
+            const filledChildren = children.filter(
+                (child) => child.name.trim() !== '' && child.birthday !== ''
+            );
+            if (filledChildren.length > 0) {
+                const childrenData = filledChildren.map((child) => ({
+                    user_id: user.id,
+                    name: child.name,
+                    birthday: child.birthday,
+                }));
+                const { error: childError } = await supabase
+                    .from('children')
+                    .insert(childrenData);
+
+                if (childError) {
+                    console.error('子ども情報の登録エラー:', childError);
+                    // エラーでも続行（子どもは後から登録できる）
+                }
+            }
+
+            // 3. 登録完了 → HOMEへ
+            router.push('/');
+        } catch (err: any) {
+            console.error('サインアップエラー：', err);
+            setError(
+                err.message || '登録に失敗しました。もう一度お試しください。'
+            );
+        } finally {
+            setLoading(false);
+        }
     };
 
     const addChild = () => {
         setChildren([
             ...children,
-            { id: crypto.randomUUID(), name: '', age: '' },
+            { id: crypto.randomUUID(), name: '', birthday: '' },
         ]);
     };
 
     const removeChild = (id: string) => {
-        setChildren(children.filter((child) => child.id !== id));
+        if (children.length > 1) {
+            setChildren(children.filter((child) => child.id !== id));
+        }
     };
 
-    const updateChild = (id: string, field: 'name' | 'age', value: string) => {
+    const updateChild = (
+        id: string,
+        field: 'name' | 'birthday',
+        value: string
+    ) => {
         setChildren(
             children.map((child) =>
-                child.id === id
-                    ? {
-                        ...child,
-                        [field]:
-                            field === 'age'
-                                ? value
-                                    ? Number(value)
-                                    : ''
-                                : value,
-                    }
-                    : child
+                child.id === id ? { ...child, [field]: value } : child
             )
         );
     };
@@ -118,6 +145,15 @@ export default function Signup() {
                         新規登録
                     </h1>
 
+                    {/* エラーメッセージ */}
+                    {error && (
+                        <div className="mb-4 p-3 bg-red-50 border-2 border-red-200 rounded-xl">
+                            <p className="text-sm text-red-600 whitespace-pre-line text-center">
+                                {error}
+                            </p>
+                        </div>
+                    )}
+
                     <div className="flex flex-col gap-4">
                         {/* ユーザー名 */}
                         <div>
@@ -126,8 +162,8 @@ export default function Signup() {
                             </label>
                             <input
                                 type="text"
-                                value={username}
-                                onChange={(e) => setUsername(e.target.value)}
+                                value={name}
+                                onChange={(e) => setName(e.target.value)}
                                 placeholder="例: ママ"
                                 className={inputClassName}
                             />
@@ -195,19 +231,20 @@ export default function Signup() {
                                         <span className="text-sm font-medium text-brown">
                                             {index + 1}人目
                                         </span>
-                                        {children.length > 2 && (
+                                        {children.length > 1 && (
                                             <button
                                                 type="button"
                                                 onClick={() =>
                                                     removeChild(child.id)
                                                 }
                                                 className="text-brown text-sm hover:opacity-70"
+                                                disabled={loading}
                                             >
                                                 ✕ 削除
                                             </button>
                                         )}
                                     </div>
-                                    <div className="flex gap-2">
+                                    <div className="flex flex-col gap-2">
                                         <input
                                             type="text"
                                             value={child.name}
@@ -219,26 +256,21 @@ export default function Signup() {
                                                 )
                                             }
                                             placeholder="名前"
-                                            className={clsx(
-                                                inputClassName,
-                                                'flex-3'
-                                            )}
+                                            className={inputClassName}
+                                            disabled={loading}
                                         />
                                         <input
-                                            type="number"
-                                            value={child.age}
+                                            type="date"
+                                            value={child.birthday}
                                             onChange={(e) =>
                                                 updateChild(
                                                     child.id,
-                                                    'age',
+                                                    'birthday',
                                                     e.target.value
                                                 )
                                             }
-                                            placeholder="年齢"
-                                            className={clsx(
-                                                inputClassName,
-                                                'flex-1'
-                                            )}
+                                            className={inputClassName}
+                                            disabled={loading}
                                         />
                                     </div>
                                 </div>
@@ -249,6 +281,7 @@ export default function Signup() {
                                     type="button"
                                     onClick={addChild}
                                     className="text-brown text-xl font-bold hover:opacity-70"
+                                    disabled={loading}
                                 >
                                     ➕
                                 </button>
@@ -259,10 +292,10 @@ export default function Signup() {
                             variant="primary"
                             size="large"
                             fullWidth
-                            type="button"
                             onClick={handleSignup}
+                            disabled={loading}
                         >
-                            登録する
+                            {loading ? '登録中...' : '登録する'}
                         </Button>
                     </div>
 
