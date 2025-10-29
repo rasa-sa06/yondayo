@@ -1,17 +1,33 @@
 "use client";
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';  // ルーターのインポート
+import Link from 'next/link';
 import { Logo } from '../../components/Logo';
 import { Button } from '../../components/Button';
+import { signIn } from '../../../lib/auth';  // 認証関数のインポート
 import clsx from 'clsx';
 
 export default function Login() {
+    const router = useRouter();
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [error, setError] = useState('');
+    const [loading, setLoading] = useState(false);
 
-    const handleLogin = () => {
-        // 後でSupabase認証を実装
-        console.log('ログイン:', { email, password });
+    const handleLogin = async () => {
+        setError('');   // エラーをリセット
+        setLoading(true);   // ローディング開始
+
+        try {
+            await signIn(email, password);  // ログイン実行
+            router.push('/');  // ログイン成功後にHOME
+        } catch (err: any) {
+            console.error('ログインエラー:', err);
+            setError('ログインに失敗しました。メールアドレスまたはパスワードを確認してください。');
+        } finally {
+            setLoading(false);  // ローディング終了
+        }
     };
 
     const inputClassName = clsx(
@@ -35,6 +51,12 @@ export default function Login() {
                         ログイン
                     </h1>
 
+                    {error && (
+                        <div className="mb-4 p-3 bg-red-50 border-2 border-red-200 rounded-xl">
+                            <p className="text-sm text-red-600 text-center">{error}</p>
+                        </div>
+                    )}
+
                     <div className="flex flex-col gap-4">
                         <div>
                             <label className="block text-sm font-medium text-brown mb-2">
@@ -46,6 +68,7 @@ export default function Login() {
                                 onChange={(e) => setEmail(e.target.value)}
                                 placeholder="example@email.com"
                                 className={inputClassName}
+                                disabled={loading}  // ローディング中は無効化
                             />
                         </div>
 
@@ -59,6 +82,7 @@ export default function Login() {
                                 onChange={(e) => setPassword(e.target.value)}
                                 placeholder="••••••••"
                                 className={inputClassName}
+                                disabled={loading}  // ローディング中は無効化
                             />
                         </div>
 
@@ -67,8 +91,9 @@ export default function Login() {
                             size="large"
                             fullWidth
                             onClick={handleLogin}
+                            disabled={loading}  // ローディング中は無効化
                         >
-                            ログイン
+                            {loading ? 'ログイン中...' : 'ログイン'}
                         </Button>
                     </div>
 
@@ -77,12 +102,12 @@ export default function Login() {
                         <p className="text-sm text-gray-600">
                             アカウントを お持ちでない方は
                         </p>
-                        <a
+                        <Link
                             href="/signup"
                             className="text-brown font-bold underline hover:opacity-70"
                         >
                             新規登録
-                        </a>
+                        </Link>
                     </div>
                 </div>
 
