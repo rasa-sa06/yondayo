@@ -3,6 +3,7 @@ import "./globals.css";
 // Google Fontsの読み込み（Next.jsの推奨方法）
 import { M_PLUS_Rounded_1c } from "next/font/google";
 import { AppProvider } from "../contexts/AppContext";
+import { AuthProvider } from "../contexts/AuthContext";
 import { AppLayout } from "../components/AppLayout";
 
 const mPlusRounded = M_PLUS_Rounded_1c({
@@ -25,13 +26,14 @@ export default function RootLayout({
     return (
         <html lang="ja">
             <body className={mPlusRounded.variable}>
-                <AppProvider>
-                    <AppLayout>
-                        {children}
-                    </AppLayout>
-                </AppProvider>
+                <AuthProvider>
+                    <AppProvider>
+                        <AppLayout>
+                            {children}
+                        </AppLayout>
+                    </AppProvider>
+                </AuthProvider>
             </body>
-
         </html>
     );
 }
