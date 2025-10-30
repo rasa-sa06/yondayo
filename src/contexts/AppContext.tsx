@@ -219,10 +219,18 @@ export function AppProvider({ children }: AppProviderProps) {
             return;
         }
 
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) {
+            alert('ログインしてください');
+            return;
+        }
+
+        const userId = user.id;
+
         const { data, error } = await supabase
             .from('wishlist_books')
             .insert([{
-                user_id: '00000000-0000-0000-0000-000000000000',  // ← 一時的な値（認証実装後に修正）
+                user_id: user.id,
                 child_id: selectedChildId,
                 title: book.title,
                 author: book.author,
@@ -270,10 +278,18 @@ export function AppProvider({ children }: AppProviderProps) {
 
     // book を追加（book.id を返す）
     const addBook = async (newBook: Omit<Book, 'id' | 'createdAt' | 'updatedAt'>): Promise<string | null> => {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) {
+            alert('ログインしてください');
+            return null;
+        }
+
+        const userId = user.id;
+
         const { data, error } = await supabase
             .from('books')
             .insert([{
-                user_id: '00000000-0000-0000-0000-000000000000',  // 一時的なダミー値
+                user_id: user.id,
                 title: newBook.title,
                 author: newBook.author,
                 image_url: newBook.imageUrl,
@@ -318,10 +334,17 @@ export function AppProvider({ children }: AppProviderProps) {
 
     // child を追加
     const addChild = async (newChild: Omit<Child, 'id' | 'createdAt' | 'updatedAt'>): Promise<void> => {
+        // 現在ログイン中のユーザーIDを取得
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) {
+            alert('ログインしてください');
+            return;
+        }
+        console.log('📝 追加しようとしているデータ:', newChild);
         const { data, error } = await supabase
             .from('children')
             .insert([{
-                user_id: '00000000-0000-0000-0000-000000000000',  // 一時的なダミー値
+                user_id: user.id,
                 name: newChild.name,
                 birthday: newChild.birthday,
             }])
@@ -330,8 +353,10 @@ export function AppProvider({ children }: AppProviderProps) {
 
         if (error) {
             console.error('子どもの追加エラー:', error);
-            alert('子どもの追加に失敗しました');
+            console.error('📋 エラー詳細:', JSON.stringify(error, null, 2));  // ← 追加
+            alert(`子どもの追加に失敗しました: ${error.message || JSON.stringify(error)}`);
         } else if (data) {
+            console.log('✅ 追加成功:', data);  // ← 追加
             await fetchChildren();
             setSelectedChildId(data.id); // ← 追加：追加した子どもを自動選択
         }
