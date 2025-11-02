@@ -88,7 +88,7 @@ export default function Signup() {
             }
 
             // 3. 登録完了 → HOMEへ
-            router.push('/');
+            router.push('/verify-email');
         } catch (err: any) {
             console.error('サインアップエラー：', err);
             setError(
