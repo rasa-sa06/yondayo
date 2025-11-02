@@ -19,23 +19,15 @@ export async function signUp(email: string, password: string, name: string) {
         password,
         options: {
             emailRedirectTo: `${window.location.origin}/auth/callback`,
+            data: {
+                name: name,  // ← nameをメタデータとして保存
+            },
         },
     });
     if (authError) throw authError;
     if (!authData.user) throw new Error('ユーザーの作成に失敗しました');
 
-    const userId = authData.user.id;
-
-    // 2. profilesテーブルにユーザー情報を追加
-    const { data: profileData, error: profileError } = await supabase
-        .from('profiles')
-        .insert([{ id: userId, name }])
-        .select()
-        .single();
-
-    if (profileError) throw profileError;
-
-    return { user: authData.user, profile: profileData };
+    return { user: authData.user };
 }
 
 // ======================
