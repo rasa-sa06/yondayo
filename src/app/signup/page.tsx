@@ -6,14 +6,14 @@ import Link from 'next/link';
 import { Logo } from '../../components/Logo';
 import { Button } from '../../components/Button';
 import { signUp } from '../../../lib/auth';
-import { supabase } from '../../../lib/supabase';
+// import { supabase } from '../../../lib/supabase';
 import clsx from 'clsx';
 
-type Child = {
-    id: string;
-    name: string;
-    birthday: string;
-};
+// type Child = {
+//     id: string;
+//     name: string;
+//     birthday: string;
+// };
 
 export default function Signup() {
     const router = useRouter();
@@ -21,9 +21,9 @@ export default function Signup() {
     const [name, setName] = useState('');   // username → name に変更（profilesテーブルに合わせる）
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
-    const [children, setChildren] = useState<Child[]>([
-        { id: crypto.randomUUID(), name: '', birthday: '' },
-    ]);
+    // const [children, setChildren] = useState<Child[]>([
+    //     { id: crypto.randomUUID(), name: '', birthday: '' },
+    // ]);　子どもの情報はログイン後に追加する仕様に変更
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
 
@@ -68,24 +68,24 @@ export default function Signup() {
             const { user } = await signUp(email, password, name);
 
             // 2. 子ども情報を登録（入力されている場合のみ）
-            const filledChildren = children.filter(
-                (child) => child.name.trim() !== '' && child.birthday !== ''
-            );
-            if (filledChildren.length > 0) {
-                const childrenData = filledChildren.map((child) => ({
-                    user_id: user.id,
-                    name: child.name,
-                    birthday: child.birthday,
-                }));
-                const { error: childError } = await supabase
-                    .from('children')
-                    .insert(childrenData);
+            // const filledChildren = children.filter(
+            //     (child) => child.name.trim() !== '' && child.birthday !== ''
+            // );
+            // if (filledChildren.length > 0) {
+            //     const childrenData = filledChildren.map((child) => ({
+            //         user_id: user.id,
+            //         name: child.name,
+            //         birthday: child.birthday,
+            //     }));
+            //     const { error: childError } = await supabase
+            //         .from('children')
+            //         .insert(childrenData);
 
-                if (childError) {
-                    console.error('子ども情報の登録エラー:', childError);
-                    // エラーでも続行（子どもは後から登録できる）
-                }
-            }
+            //     if (childError) {
+            //         console.error('子ども情報の登録エラー:', childError);
+            //         // エラーでも続行（子どもは後から登録できる）
+            //     }
+            // }　子どもの情報はログイン後に追加する仕様に変更
 
             // 3. 登録完了 → HOMEへ
             router.push('/verify-email');
@@ -99,30 +99,30 @@ export default function Signup() {
         }
     };
 
-    const addChild = () => {
-        setChildren([
-            ...children,
-            { id: crypto.randomUUID(), name: '', birthday: '' },
-        ]);
-    };
+    // const addChild = () => {
+    //     setChildren([
+    //         ...children,
+    //         { id: crypto.randomUUID(), name: '', birthday: '' },
+    //     ]);
+    // };
 
-    const removeChild = (id: string) => {
-        if (children.length > 1) {
-            setChildren(children.filter((child) => child.id !== id));
-        }
-    };
+    // const removeChild = (id: string) => {
+    //     if (children.length > 1) {
+    //         setChildren(children.filter((child) => child.id !== id));
+    //     }
+    // };
 
-    const updateChild = (
-        id: string,
-        field: 'name' | 'birthday',
-        value: string
-    ) => {
-        setChildren(
-            children.map((child) =>
-                child.id === id ? { ...child, [field]: value } : child
-            )
-        );
-    };
+    // const updateChild = (
+    //     id: string,
+    //     field: 'name' | 'birthday',
+    //     value: string
+    // ) => {
+    //     setChildren(
+    //         children.map((child) =>
+    //             child.id === id ? { ...child, [field]: value } : child
+    //         )
+    //     );
+    // };　子どもの情報はログイン後に追加する仕様に変更
 
     const inputClassName = clsx(
         'w-full p-4 border-2 border-cyan rounded-xl',
@@ -212,7 +212,7 @@ export default function Signup() {
                         </div>
 
                         {/* 子ども情報 */}
-                        <div className="mt-4">
+                        {/* <div className="mt-4">
                             <div className="flex justify-between items-center mb-3">
                                 <label className="text-sm font-medium text-brown">
                                     お子さまの情報{' '}
@@ -286,7 +286,7 @@ export default function Signup() {
                                     ➕
                                 </button>
                             </div>
-                        </div>
+                        </div> ログイン後に子どもの情報を登録する仕様に変更*/}
 
                         <Button
                             variant="primary"
