@@ -54,9 +54,17 @@ export async function signOut() {
 // 現在のユーザー情報を取得
 // ======================
 export async function getCurrentUser(): Promise<User | null> {
-    const { data: { user }, error } = await supabase.auth.getUser();
-    if (error) throw error;
-    return user;
+    try {
+        const { data: { user }, error } = await supabase.auth.getUser();
+        if (error) {
+            // セッションがない場合は null を返す（エラーを投げない）
+            return null;
+        }
+        return user;
+    } catch {
+        // エラーが出ても null を返す
+        return null;
+    }
 }
 
 // ======================

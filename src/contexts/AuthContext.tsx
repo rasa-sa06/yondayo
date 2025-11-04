@@ -32,10 +32,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 setUser(currentUser);
 
                 if (currentUser) {
-                    const userProfile = await getProfile(currentUser.id);
-                    if (isMounted) setProfile(userProfile);
+                    try {
+                        const userProfile = await getProfile(currentUser.id);
+                        if (isMounted) setProfile(userProfile);
+                    } catch (profileError) {
+                        // プロフィールがまだ作成されていない場合（メール確認前など）
+                        console.log('プロフィール未作成:', profileError);
+                        if (isMounted) setProfile(null);
+                    }
                 }
             } catch (error) {
+                console.error('認証エラー:', error);
                 if (isMounted) {
                     setUser(null);
                     setProfile(null);
@@ -47,15 +54,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
         initAuth();
 
-        // Supabaseのリスナー登録
-        const { data: { subscription } } = onAuthStateChange(async (currentUser) => {  // ← 修正
+        const { data: { subscription } } = onAuthStateChange(async (currentUser) => {
             if (!isMounted) return;
 
             setUser(currentUser);
 
             if (currentUser) {
-                const userProfile = await getProfile(currentUser.id);
-                if (isMounted) setProfile(userProfile);
+                try {
+                    const userProfile = await getProfile(currentUser.id);
+                    if (isMounted) setProfile(userProfile);
+                } catch (profileError) {
+                    console.log('プロフィール未作成:', profileError);
+                    if (isMounted) setProfile(null);
+                }
             } else {
                 setProfile(null);
             }
