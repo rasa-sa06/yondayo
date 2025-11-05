@@ -18,7 +18,7 @@ export async function signUp(email: string, password: string, name: string) {
         email,
         password,
         options: {
-            emailRedirectTo: `${window.location.origin}/auth/callback`,
+            emailRedirectTo: `${process.env.NEXT_PUBLIC_APP_URL}/auth/callback`,  // ← 修正
             data: {
                 name: name,  // ← nameをメタデータとして保存
             },
