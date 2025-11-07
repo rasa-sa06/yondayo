@@ -1,10 +1,10 @@
 "use client";
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useActionState } from 'react';
 import { Logo } from '../../components/Logo';
 import { Button } from '../../components/Button';
-import { supabase } from '../../../lib/supabase';
+import { registerChildren, skipOnboarding } from './action';
 import clsx from 'clsx';
 
 type Child = {
@@ -13,13 +13,15 @@ type Child = {
     birthday: string;
 };
 
+const initialState = {
+    message: "",
+};
+
 export default function Onboarding() {
-    const router = useRouter();
     const [children, setChildren] = useState<Child[]>([
         { id: crypto.randomUUID(), name: '', birthday: '' },
     ]);
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState('');
+    const [state, formAction, isPending] = useActionState(registerChildren, initialState);
 
     const addChild = () => {
         setChildren([
@@ -44,53 +46,6 @@ export default function Onboarding() {
                 child.id === id ? { ...child, [field]: value } : child
             )
         );
-    };
-
-    const handleSubmit = async () => {
-        setLoading(true);
-        setError('');
-
-        try {
-            // 現在ログイン中のユーザーIDを取得
-            const { data: { user } } = await supabase.auth.getUser();
-
-            if (!user) {
-                throw new Error('ログインしてください');
-            }
-
-            // 入力されている子どもの情報のみ登録
-            const filledChildren = children.filter(
-                (child) => child.name.trim() !== '' && child.birthday !== ''
-            );
-
-            if (filledChildren.length > 0) {
-                const childrenData = filledChildren.map((child) => ({
-                    user_id: user.id,
-                    name: child.name,
-                    birthday: child.birthday,
-                }));
-
-                const { error: childError } = await supabase
-                    .from('children')
-                    .insert(childrenData);
-
-                if (childError) {
-                    throw childError;
-                }
-            }
-
-            // HOMEへ遷移
-            router.push('/');
-        } catch (err: any) {
-            console.error('子ども情報の登録エラー:', err);
-            setError('登録に失敗しました。もう一度お試しください。');
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    const handleSkip = () => {
-        router.push('/');
     };
 
     const inputClassName = clsx(
@@ -120,92 +75,98 @@ export default function Onboarding() {
                     </p>
 
                     {/* エラーメッセージ */}
-                    {error && (
+                    {state.message && (
                         <div className="mb-4 p-3 bg-red-50 border-2 border-red-200 rounded-xl">
                             <p className="text-sm text-red-600 text-center">
-                                {error}
+                                {state.message}
                             </p>
                         </div>
                     )}
 
-                    <div className="flex flex-col gap-4">
-                        {/* 子ども情報 */}
-                        {children.map((child, index) => (
-                            <div
-                                key={child.id}
-                                className="p-4 bg-cream rounded-xl"
-                            >
-                                <div className="flex justify-between items-center mb-2">
-                                    <span className="text-sm font-medium text-brown">
-                                        {index + 1}人目
-                                    </span>
-                                    {children.length > 1 && (
-                                        <button
-                                            type="button"
-                                            onClick={() => removeChild(child.id)}
-                                            className="text-brown text-sm hover:opacity-70"
-                                            disabled={loading}
-                                        >
-                                            ✕ 削除
-                                        </button>
-                                    )}
+                    <form action={formAction}>
+                        <div className="flex flex-col gap-4">
+                            {/* 子ども情報 */}
+                            {children.map((child, index) => (
+                                <div
+                                    key={child.id}
+                                    className="p-4 bg-cream rounded-xl"
+                                >
+                                    <div className="flex justify-between items-center mb-2">
+                                        <span className="text-sm font-medium text-brown">
+                                            {index + 1}人目
+                                        </span>
+                                        {children.length > 1 && (
+                                            <button
+                                                type="button"
+                                                onClick={() => removeChild(child.id)}
+                                                className="text-brown text-sm hover:opacity-70"
+                                                disabled={isPending}
+                                            >
+                                                ✕ 削除
+                                            </button>
+                                        )}
+                                    </div>
+                                    <div className="flex flex-col gap-2">
+                                        <input
+                                            type="text"
+                                            name={`child_${index}_name`}
+                                            value={child.name}
+                                            onChange={(e) =>
+                                                updateChild(child.id, 'name', e.target.value)
+                                            }
+                                            placeholder="名前"
+                                            className={inputClassName}
+                                            disabled={isPending}
+                                        />
+                                        <input
+                                            type="date"
+                                            name={`child_${index}_birthday`}
+                                            value={child.birthday}
+                                            onChange={(e) =>
+                                                updateChild(child.id, 'birthday', e.target.value)
+                                            }
+                                            className={inputClassName}
+                                            disabled={isPending}
+                                        />
+                                    </div>
                                 </div>
-                                <div className="flex flex-col gap-2">
-                                    <input
-                                        type="text"
-                                        value={child.name}
-                                        onChange={(e) =>
-                                            updateChild(child.id, 'name', e.target.value)
-                                        }
-                                        placeholder="名前"
-                                        className={inputClassName}
-                                        disabled={loading}
-                                    />
-                                    <input
-                                        type="date"
-                                        value={child.birthday}
-                                        onChange={(e) =>
-                                            updateChild(child.id, 'birthday', e.target.value)
-                                        }
-                                        className={inputClassName}
-                                        disabled={loading}
-                                    />
-                                </div>
+                            ))}
+
+                            <div>
+                                <span className="text-sm text-brown ml-2 mr-2">
+                                    お子様を追加
+                                </span>
+                                <button
+                                    type="button"
+                                    onClick={addChild}
+                                    className="text-brown text-xl font-bold hover:opacity-70"
+                                    disabled={isPending}
+                                >
+                                    ➕
+                                </button>
                             </div>
-                        ))}
 
-                        <div>
-                            <span className="text-sm text-brown ml-2 mr-2">
-                                お子様を追加
-                            </span>
-                            <button
-                                type="button"
-                                onClick={addChild}
-                                className="text-brown text-xl font-bold hover:opacity-70"
-                                disabled={loading}
+                            <Button
+                                variant="primary"
+                                size="large"
+                                fullWidth
+                                type="submit"
+                                disabled={isPending}
                             >
-                                ➕
-                            </button>
+                                {isPending ? '登録中...' : '登録する'}
+                            </Button>
                         </div>
+                    </form>
 
-                        <Button
-                            variant="primary"
-                            size="large"
-                            fullWidth
-                            onClick={handleSubmit}
-                            disabled={loading}
-                        >
-                            {loading ? '登録中...' : '登録する'}
-                        </Button>
-
+                    <form action={skipOnboarding}>
                         <button
-                            onClick={handleSkip}
-                            disabled={loading}
-                            className="w-full text-brown text-sm hover:opacity-70 disabled:opacity-50"
+                            type="submit"
+                            disabled={isPending}
+                            className="w-full mt-4 text-brown text-sm hover:opacity-70 disabled:opacity-50"
                         >
                             後で登録する
                         </button>
-                    </div>
+                    </form>
                 </div>
             </div>
         </div>
