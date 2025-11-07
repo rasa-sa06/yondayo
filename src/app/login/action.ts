@@ -15,5 +15,18 @@ export async function login(_prevState: any, formData: FormData) {
         return { message: "ログインに失敗しました。メールアドレスまたはパスワードを確認してください。" };
     }
 
+    // ✅ ログイン成功後、子どもの有無を確認
+    const { data: children } = await supabase
+        .from('children')
+        .select('id')
+        .eq('user_id', data.user.id)
+        .limit(1);
+
+    // 子どもがいなければオンボーディングへ
+    if (!children || children.length === 0) {
+        redirect('/onboarding');
+    }
+
+
     redirect('/');
 }
