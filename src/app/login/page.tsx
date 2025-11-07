@@ -1,34 +1,20 @@
-"use client";
+"use client"
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';  // ルーターのインポート
 import Link from 'next/link';
 import { Logo } from '../../components/Logo';
 import { Button } from '../../components/Button';
-import { signIn } from '../../../lib/auth';  // 認証関数のインポート
 import clsx from 'clsx';
+import { login } from './action';
+import { useActionState } from 'react';
+
+const initialState = {
+    email: "",
+    password: "",
+    message: "",
+}
 
 export default function Login() {
-    const router = useRouter();
-    const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
-    const [error, setError] = useState('');
-    const [loading, setLoading] = useState(false);
-
-    const handleLogin = async () => {
-        setError('');   // エラーをリセット
-        setLoading(true);   // ローディング開始
-
-        try {
-            await signIn(email, password);  // ログイン実行
-            router.push('/');  // ログイン成功後にHOME
-        } catch (err: any) {
-            console.error('ログインエラー:', err);
-            setError('ログインに失敗しました。メールアドレスまたはパスワードを確認してください。');
-        } finally {
-            setLoading(false);  // ローディング終了
-        }
-    };
+    const [state, formAction, isPending] = useActionState(login, initialState);
 
     const inputClassName = clsx(
         'w-full p-4 border-2 border-cyan rounded-xl',
@@ -51,51 +37,51 @@ export default function Login() {
                         ログイン
                     </h1>
 
-                    {error && (
+                    {state.message && (
                         <div className="mb-4 p-3 bg-red-50 border-2 border-red-200 rounded-xl">
-                            <p className="text-sm text-red-600 text-center">{error}</p>
+                            <p className="text-sm text-red-600 text-center">{state.message}</p>
                         </div>
                     )}
 
-                    <div className="flex flex-col gap-4">
-                        <div>
-                            <label className="block text-sm font-medium text-brown mb-2">
-                                メールアドレス
-                            </label>
-                            <input
-                                type="email"
-                                value={email}
-                                onChange={(e) => setEmail(e.target.value)}
-                                placeholder="example@email.com"
-                                className={inputClassName}
-                                disabled={loading}  // ローディング中は無効化
-                            />
-                        </div>
+                    <form action={formAction}>
+                        <div className="flex flex-col gap-4">
+                            <div>
+                                <label className="block text-sm font-medium text-brown mb-2">
+                                    メールアドレス
+                                </label>
+                                <input
+                                    type="email"
+                                    name="email"
+                                    placeholder="example@email.com"
+                                    className={inputClassName}
+                                    disabled={isPending}
+                                />
+                            </div>
 
-                        <div>
-                            <label className="block text-sm font-medium text-brown mb-2">
-                                パスワード
-                            </label>
-                            <input
-                                type="password"
-                                value={password}
-                                onChange={(e) => setPassword(e.target.value)}
-                                placeholder="••••••••"
-                                className={inputClassName}
-                                disabled={loading}  // ローディング中は無効化
-                            />
-                        </div>
+                            <div>
+                                <label className="block text-sm font-medium text-brown mb-2">
+                                    パスワード
+                                </label>
+                                <input
+                                    type="password"
+                                    name="password"
+                                    placeholder="••••••••"
+                                    disabled={isPending}
+                                    className={inputClassName}
+                                />
+                            </div>
 
-                        <Button
-                            variant="primary"
-                            size="large"
-                            fullWidth
-                            onClick={handleLogin}
-                            disabled={loading}  // ローディング中は無効化
-                        >
-                            {loading ? 'ログイン中...' : 'ログイン'}
-                        </Button>
-                    </div>
+                            <Button
+                                variant="primary"
+                                size="large"
+                                fullWidth
+                                disabled={isPending}
+                                type="submit"
+                            >
+                                ログイン
+                            </Button>
+                        </div>
+                    </form>
 
                     {/* サインアップへのリンク */}
                     <div className="mt-6 text-center">
