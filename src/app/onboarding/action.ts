@@ -45,13 +45,13 @@ export async function registerChildren(_prevState: any, formData: FormData) {
     }
 
     // キャッシュを再検証
-    revalidatePath('/', 'layout');
+    // revalidatePath('/', 'layout');
 
     // 成功
     return { message: '', success: true };
 }
 
 export async function skipOnboarding() {
-    revalidatePath('/', 'layout');
+    // revalidatePath('/', 'layout');
     return { message: '', success: true };
 }
