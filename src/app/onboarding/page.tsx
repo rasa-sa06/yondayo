@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { useActionState } from 'react';
 import { Logo } from '../../components/Logo';
 import { Button } from '../../components/Button';
@@ -15,13 +16,23 @@ type Child = {
 
 const initialState = {
     message: "",
+    success: false,
 };
 
 export default function Onboarding() {
+    const router = useRouter();
     const [children, setChildren] = useState<Child[]>([
         { id: crypto.randomUUID(), name: '', birthday: '' },
     ]);
     const [state, formAction, isPending] = useActionState(registerChildren, initialState);
+    const [skipState, skipFormAction, isSkipping] = useActionState(skipOnboarding, initialState);
+
+    // アクション完了後にリフレッシュ
+    useEffect(() => {
+        if (state.success || skipState.success) {
+            router.push('/');
+        }
+    }, [state.success, skipState.success, router]);
 
     const addChild = () => {
         setChildren([
@@ -100,7 +111,7 @@ export default function Onboarding() {
                                                 type="button"
                                                 onClick={() => removeChild(child.id)}
                                                 className="text-brown text-sm hover:opacity-70"
-                                                disabled={isPending}
+                                                disabled={isPending || isSkipping}
                                             >
                                                 ✕ 削除
                                             </button>
@@ -116,7 +127,7 @@ export default function Onboarding() {
                                             }
                                             placeholder="名前"
                                             className={inputClassName}
-                                            disabled={isPending}
+                                            disabled={isPending || isSkipping}
                                         />
                                         <input
                                             type="date"
@@ -126,7 +137,7 @@ export default function Onboarding() {
                                                 updateChild(child.id, 'birthday', e.target.value)
                                             }
                                             className={inputClassName}
-                                            disabled={isPending}
+                                            disabled={isPending || isSkipping}
                                         />
                                     </div>
                                 </div>
@@ -140,7 +151,7 @@ export default function Onboarding() {
                                     type="button"
                                     onClick={addChild}
                                     className="text-brown text-xl font-bold hover:opacity-70"
-                                    disabled={isPending}
+                                    disabled={isPending || isSkipping}
                                 >
                                     ➕
                                 </button>
@@ -151,20 +162,20 @@ export default function Onboarding() {
                                 size="large"
                                 fullWidth
                                 type="submit"
-                                disabled={isPending}
+                                disabled={isPending || isSkipping}
                             >
                                 {isPending ? '登録中...' : '登録する'}
                             </Button>
                         </div>
                     </form>
 
-                    <form action={skipOnboarding}>
+                    <form action={skipFormAction}>
                         <button
                             type="submit"
-                            disabled={isPending}
+                            disabled={isPending || isSkipping}
                             className="w-full mt-4 text-brown text-sm hover:opacity-70 disabled:opacity-50"
                         >
-                            後で登録する
+                            {isSkipping ? 'スキップ中...' : '後で登録する'}
                         </button>
                     </form>
                 </div>

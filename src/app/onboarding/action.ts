@@ -1,6 +1,6 @@
 'use server';
 
-import { redirect } from 'next/navigation';
+import { revalidatePath } from 'next/cache';
 import { createClient } from '@/utils/supabase/server';
 
 export async function registerChildren(_prevState: any, formData: FormData) {
@@ -10,7 +10,7 @@ export async function registerChildren(_prevState: any, formData: FormData) {
     const { data: { user }, error: userError } = await supabase.auth.getUser();
 
     if (userError || !user) {
-        return { message: 'ログインしてください' };
+        return { message: 'ログインしてください', success: false };
     }
 
     // FormDataから子どもの情報を取得
@@ -40,14 +40,18 @@ export async function registerChildren(_prevState: any, formData: FormData) {
             .insert(insertData);
 
         if (insertError) {
-            return { message: '登録に失敗しました。もう一度お試しください。' };
+            return { message: '登録に失敗しました。もう一度お試しください。', success: false };
         }
     }
 
-    // HOMEへリダイレクト
-    redirect('/');
+    // キャッシュを再検証
+    // revalidatePath('/', 'layout');
+
+    // 成功
+    return { message: '', success: true };
 }
 
 export async function skipOnboarding() {
-    redirect('/');
+    // revalidatePath('/', 'layout');
+    return { message: '', success: true };
 }
