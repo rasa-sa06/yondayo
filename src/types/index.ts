@@ -86,3 +86,31 @@ export type Book = {
 export type ReadingRecordWithBook = ReadingRecord & {
     book: Book;
 };
+
+// 楽天Books APIのレスポンス型
+export type RakutenBook = {
+    title: string;
+    author: string;
+    itemPrice: number;
+    mediumImageUrl: string;
+    largeImageUrl?: string;
+    publisherName: string;
+    itemCaption?: string;
+    itemUrl: string;
+    isbn: string;
+};
+
+export type RakutenBookItem = {
+    Item: RakutenBook;
+};
+
+export type RakutenBooksResponse = {
+    Items: RakutenBookItem[];
+    count: number;
+    page: number;
+    first: number;
+    last: number;
+    hits: number;
+    carrier: number;
+    pageCount: number;
+};

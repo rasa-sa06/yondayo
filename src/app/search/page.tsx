@@ -5,7 +5,7 @@ import Image from 'next/image';
 import clsx from 'clsx';
 import { Button } from '../../components/Button';
 import { Card } from '../../components/Card';
-import type { AgeCategory, BookCategory, RecommendedBook } from '../../types';
+import type { AgeCategory, BookCategory, RecommendedBook, RakutenBooksResponse } from '../../types';
 import { useApp } from "../../contexts/AppContext";
 
 export default function Search() {
@@ -23,6 +23,32 @@ export default function Search() {
         'えほん', 'ずかん', 'かがく', 'ことば', 'きもち', 'きせつ', 'いきもの', 'あそび', 'シリーズ', 'しぜん'
     ];
 
+    // 年齢 → ひらがなキーワード (titleパラメータで検索)
+    const ageToKeyword: Record<AgeCategory, string> = {
+        '0歳': '0さい',
+        '1歳': '1さい',
+        '2歳': '2さい',
+        '3歳': '3さい',
+        '4歳': '4さい',
+        '5歳': '5さい',
+        '6歳': '6さい',
+        '小学校低学年': 'しょうがっこう',
+    };
+
+    // カテゴリ → 検索設定
+    const categoryConfig: Record<BookCategory, { genreId: string; title?: string }> = {
+        'えほん': { genreId: '001003003' },  // ジャンルIDのみ
+        'ずかん': { genreId: '001003003', title: 'ずかん' },
+        'かがく': { genreId: '001003003', title: 'かがく' },
+        'ことば': { genreId: '001003003', title: 'ことば' },
+        'きもち': { genreId: '001003003', title: 'きもち' },
+        'きせつ': { genreId: '001003003', title: 'きせつ' },
+        'いきもの': { genreId: '001003003', title: 'いきもの' },
+        'あそび': { genreId: '001003003', title: 'あそび' },
+        'シリーズ': { genreId: '001003003', title: 'しりーず' },
+        'しぜん': { genreId: '001003003', title: 'しぜん' },
+    };
+
     const handleAgeClick = (age: AgeCategory) => {
         setSelectedAge(selectedAge === age ? null : age);
     };
@@ -31,37 +57,77 @@ export default function Search() {
         setSelectedCategory(selectedCategory === category ? null : category);
     };
 
-    const handleSearch = () => {
+    // 楽天APIを呼び出す関数
+    const searchRakutenBooks = async (genreId: string, title?: string, keyword?: string) => {
+        try {
+            let apiUrl = `/api/rakuten?genreId=${genreId}`;
+
+            if (title) {
+                apiUrl += `&title=${encodeURIComponent(title)}`;
+            }
+
+            if (keyword) {
+                apiUrl += `&keyword=${encodeURIComponent(keyword)}`;
+            }
+
+            console.log('🔍 検索開始:', apiUrl);
+
+            const response = await fetch(apiUrl);
+
+            if (!response.ok) {
+                throw new Error('検索に失敗しました');
+            }
+
+            const data: RakutenBooksResponse = await response.json();
+
+            const books: RecommendedBook[] = data.Items.map((item, index) => ({
+                id: item.Item.isbn || `book-${index}`,
+                title: item.Item.title,
+                author: item.Item.author || '著者不明',
+                imageUrl: item.Item.largeImageUrl || item.Item.mediumImageUrl || '',
+                publisher: item.Item.publisherName || '',
+                description: item.Item.itemCaption || '',
+            }));
+
+            return books;
+        } catch (error) {
+            console.error('検索エラー:', error);
+            throw error;
+        }
+    };
+
+    const handleSearch = async () => {
         setIsLoading(true);
-        setTimeout(() => {
-            setSearchResults([
-                {
-                    id: '1',
-                    title: 'はらぺこ あおむし',
-                    author: 'エリック・カール',
-                    imageUrl: '',
-                    publisher: 'へんしゅうしゃ',
-                    description: 'ちいさな あおむしが たべものを たべて おおきく なる おはなし',
-                },
-                {
-                    id: '2',
-                    title: 'ぐりとぐら',
-                    author: 'なかがわ りえこ',
-                    imageUrl: '',
-                    publisher: 'ふくいんかん',
-                    description: 'のねずみの ぐりと ぐらが おおきな かすてらを つくる おはなし',
-                },
-                {
-                    id: '3',
-                    title: 'おおきな かぶ',
-                    author: 'A・トルストイ',
-                    imageUrl: '',
-                    publisher: 'ふくいんかん',
-                    description: 'おじいさんが うえた かぶが おおきく そだちすぎて ぬけません',
-                },
-            ]);
+        setSearchResults([]);
+
+        try {
+            let results: RecommendedBook[] = [];
+
+            if (searchType === 'age' && selectedAge) {
+                // 年齢検索 (titleパラメータ)
+                results = await searchRakutenBooks('001003003', ageToKeyword[selectedAge]);
+            } else if (searchType === 'category' && selectedCategory) {
+                // カテゴリ検索
+                const config = categoryConfig[selectedCategory];
+                results = await searchRakutenBooks(config.genreId, config.title);
+            } else if (searchType === 'author' && authorName) {
+                // 著者検索 (titleパラメータ)
+                results = await searchRakutenBooks('001003003', authorName);
+            } else if (searchType === 'keyword' && keyword) {
+                // キーワード検索 (titleパラメータ)
+                results = await searchRakutenBooks('001003003', keyword);
+            } else {
+                alert('検索条件を選択してください');
+                setIsLoading(false);
+                return;
+            }
+
+            setSearchResults(results);
+        } catch (error) {
+            alert('検索に失敗しました。もう一度お試しください。');
+        } finally {
             setIsLoading(false);
-        }, 1000);
+        }
     };
 
     const typeButtonClassName = (isActive: boolean) => clsx(
@@ -167,11 +233,11 @@ export default function Search() {
 
                     <Button onClick={handleSearch} variant="primary" size="large" fullWidth>
                         <Image
-                            src="/icon-search.png"  // public フォルダに置いた画像パス
+                            src="/icon-search.png"
                             alt="検索アイコン"
-                            width={24}             // 好きなサイズに調整
+                            width={24}
                             height={24}
-                            className="inline-block mr-2" // テキストの左に少し余白
+                            className="inline-block mr-2"
                         />
                         けんさく
                     </Button>
@@ -227,12 +293,13 @@ export default function Search() {
                                             }}
                                         >
                                             <Image
-                                                src="/icon-add.png"  // public フォルダに置いた画像パス
-                                                alt="検索アイコン"
-                                                width={24}             // 好きなサイズに調整
+                                                src="/icon-add.png"
+                                                alt="追加アイコン"
+                                                width={24}
                                                 height={24}
-                                                className="inline-block mr-2" // テキストの左に少し余白
-                                            /> よみたい ほんに ついか
+                                                className="inline-block mr-2"
+                                            />
+                                            よみたい ほんに ついか
                                         </Button>
                                     </div>
                                 </div>
