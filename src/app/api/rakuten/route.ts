@@ -11,6 +11,7 @@ export async function GET(request: NextRequest) {
         const genreId = searchParams.get('genreId'); // ジャンルID
         const title = searchParams.get('title'); // タイトル
         const keyword = searchParams.get('keyword'); // キーワード
+        const page = searchParams.get('page') || '1';  // ページ番号を取得(デフォルト1)
 
         // APIキーが設定されているか確認
         if (!RAKUTEN_APP_ID) {
@@ -24,7 +25,8 @@ export async function GET(request: NextRequest) {
         let apiUrl = `https://app.rakuten.co.jp/services/api/BooksBook/Search/20170404?`;
         apiUrl += `format=json`;
         apiUrl += `&applicationId=${RAKUTEN_APP_ID}`;
-        apiUrl += `&hits=30`;
+        apiUrl += `&hits=10`;
+        apiUrl += `&page=${page}`;
         apiUrl += `&sort=reviewAverage`;  // 常に評価順
 
         // ジャンルIDがある場合は追加
@@ -54,7 +56,12 @@ export async function GET(request: NextRequest) {
         const data = await response.json();
 
         // 結果を返す
-        return NextResponse.json(data);
+        return NextResponse.json({
+            items: data.Items || [],
+            page: data.page || 1,
+            pageCount: data.pageCount || 0,
+            count: data.count || 0,
+        });
 
     } catch (error) {
         console.error('APIエラー:', error);

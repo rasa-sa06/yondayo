@@ -114,3 +114,11 @@ export type RakutenBooksResponse = {
     carrier: number;
     pageCount: number;
 };
+
+// APIルートからのレスポンス型
+export type PaginatedBooksResponse = {
+    items: RakutenBookItem[];
+    page: number;
+    pageCount: number;
+    count: number;
+};
