@@ -3,7 +3,7 @@
 import { redirect } from 'next/navigation';
 import { createClient } from '../../utils/supabase/server';
 
-export async function login(_prevState: any, formData: FormData) {
+export async function login(formData: FormData) {
     const supabase = await createClient();
 
     const { data, error } = await supabase.auth.signInWithPassword({
