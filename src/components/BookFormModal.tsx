@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Button } from './Button';
 import { StarRating } from './StarRating';
-import type { ReadingRecord, ReadingRecordWithBook, Book, Child } from '../types';
+import type { ReadingRecord, ReadingRecordWithBook, Book } from '../types';
 import { useApp } from '../contexts/AppContext';
 
 type BookFormModalProps = {
@@ -11,14 +11,20 @@ type BookFormModalProps = {
     initialData?: ReadingRecordWithBook;
 };
 
-export function BookFormModal({ isOpen, onClose, onSubmit, initialData, }: BookFormModalProps) {
+// 楽天APIの書籍データ型
+type RakutenBook = {
+    title: string;
+    author: string;
+    largeImageUrl: string;
+};
+
+export function BookFormModal({ isOpen, onClose, onSubmit, initialData }: BookFormModalProps) {
     const { books, selectedChild, addBook } = useApp();
     const [formData, setFormData] = useState({
         bookId: '',
         title: '',
         author: '',
         imageUrl: '',
-        // readCount: 1, 後で使うかも
         rating: 0,
         review: '',
         readDate: new Date().toISOString().split('T')[0],
@@ -27,14 +33,14 @@ export function BookFormModal({ isOpen, onClose, onSubmit, initialData, }: BookF
     const [isNewBook, setIsNewBook] = useState(true);
     const [filteredBooks, setFilteredBooks] = useState<Book[]>([]);
 
-    // 予測候補リスト
-    const [suggestions, setSuggestions] = useState<Book[]>([]);
-
+    // 楽天API検索用の状態
+    const [rakutenResults, setRakutenResults] = useState<RakutenBook[]>([]);
+    const [isSearching, setIsSearching] = useState(false);
+    const [showRakutenResults, setShowRakutenResults] = useState(false);
 
     useEffect(() => {
         if (initialData) {
             setFormData({
-                // readCount: initialData.readCount || 1,　後で使うかも
                 bookId: initialData.bookId,
                 title: initialData.book.title || '',
                 author: initialData.book.author || '',
@@ -57,11 +63,15 @@ export function BookFormModal({ isOpen, onClose, onSubmit, initialData, }: BookF
             setIsNewBook(true);
         }
         setFilteredBooks([]);
+        setRakutenResults([]);
+        setShowRakutenResults(false);
     }, [initialData, isOpen]);
 
-    // タイトル入力時の予測変換
+    // タイトル入力時の予測変換（既存の本から）
     const handleTitleChange = (title: string) => {
         setFormData({ ...formData, title, bookId: '' });
+        setShowRakutenResults(false); // 楽天検索結果を閉じる
+
         if (title.length > 0) {
             const matches = books.filter((b) =>
                 b.title.toLowerCase().includes(title.toLowerCase())
@@ -72,6 +82,43 @@ export function BookFormModal({ isOpen, onClose, onSubmit, initialData, }: BookF
         }
     };
 
+    // 楽天APIで検索
+    const handleRakutenSearch = async () => {
+        if (!formData.title.trim()) {
+            alert('タイトルを いれて ください');
+            return;
+        }
+
+        setIsSearching(true);
+        setFilteredBooks([]); // 既存の本の予測を閉じる
+
+        try {
+            const response = await fetch(
+                `/api/rakuten/search-by-title?title=${encodeURIComponent(formData.title)}`
+            );
+            const data = await response.json();
+
+            if (data.Items && data.Items.length > 0) {
+                const books = data.Items.map((item: any) => ({
+                    title: item.Item.title,
+                    author: item.Item.author,
+                    largeImageUrl: item.Item.largeImageUrl,
+                }));
+                setRakutenResults(books);
+                setShowRakutenResults(true);
+            } else {
+                alert('けんさく けっかが ありませんでした');
+                setRakutenResults([]);
+            }
+        } catch (error) {
+            console.error('検索エラー:', error);
+            alert('けんさくに しっぱい しました');
+        } finally {
+            setIsSearching(false);
+        }
+    };
+
+    // 既存の本から選択
     const handleSelectBook = (book: Book) => {
         setFormData({
             ...formData,
@@ -82,6 +129,19 @@ export function BookFormModal({ isOpen, onClose, onSubmit, initialData, }: BookF
         });
         setIsNewBook(false);
         setFilteredBooks([]);
+    };
+
+    // 楽天APIの検索結果から選択
+    const handleSelectRakutenBook = (book: RakutenBook) => {
+        setFormData({
+            ...formData,
+            bookId: '', // 新しい本なのでIDはなし
+            title: book.title,
+            author: book.author,
+            imageUrl: book.largeImageUrl,
+        });
+        setShowRakutenResults(false);
+        setRakutenResults([]);
     };
 
     const handleSubmit = async () => {
@@ -149,16 +209,27 @@ export function BookFormModal({ isOpen, onClose, onSubmit, initialData, }: BookF
                     {/* タイトル入力 */}
                     <div className="mb-5 relative">
                         <label className="block mb-2 font-medium text-brown text-base">タイトル *</label>
-                        <input
-                            type="text"
-                            value={formData.title}
-                            onChange={(e) => handleTitleChange(e.target.value)}
-                            className="w-full p-3 border-2 border-cyan rounded-xl font-mplus text-base text-brown bg-white focus:outline-none focus:border-[#99e6e6]"
-                            placeholder="ほんの なまえを いれて ください"
-                        />
-                        {/* 予測変換 */}
+                        <div className="flex gap-2">
+                            <input
+                                type="text"
+                                value={formData.title}
+                                onChange={(e) => handleTitleChange(e.target.value)}
+                                className="flex-1 p-3 border-2 border-cyan rounded-xl font-mplus text-base text-brown bg-white focus:outline-none focus:border-[#99e6e6]"
+                                placeholder="ほんの なまえを いれて ください"
+                            />
+                            <button
+                                type="button"
+                                onClick={handleRakutenSearch}
+                                disabled={isSearching}
+                                className="px-4 py-3 bg-orange text-white rounded-xl font-mplus text-base font-medium hover:opacity-80 disabled:opacity-50 whitespace-nowrap"
+                            >
+                                {isSearching ? '検索中...' : '🔍 検索'}
+                            </button>
+                        </div>
+
+                        {/* 既存の本の予測変換 */}
                         {filteredBooks.length > 0 && (
-                            <ul className="absolute z-[100] bg-white border border-cyan rounded-xl mt-1 w-full max-h-40 overflow-y-auto">
+                            <ul className="absolute z-[100] bg-white border border-cyan rounded-xl mt-1 w-full max-h-40 overflow-y-auto shadow-lg">
                                 {filteredBooks.map((b) => (
                                     <li
                                         key={b.id}
@@ -169,6 +240,34 @@ export function BookFormModal({ isOpen, onClose, onSubmit, initialData, }: BookF
                                     </li>
                                 ))}
                             </ul>
+                        )}
+
+                        {/* 楽天API検索結果 */}
+                        {showRakutenResults && rakutenResults.length > 0 && (
+                            <div className="absolute z-[100] bg-white border-2 border-orange rounded-xl mt-1 w-full max-h-60 overflow-y-auto shadow-lg">
+                                <div className="p-2 bg-orange/10 font-medium text-brown text-sm border-b border-orange">
+                                    楽天ブックスから けんさく
+                                </div>
+                                {rakutenResults.map((book, index) => (
+                                    <div
+                                        key={index}
+                                        className="p-3 cursor-pointer hover:bg-orange/10 border-b border-gray-200 last:border-b-0 flex gap-3"
+                                        onClick={() => handleSelectRakutenBook(book)}
+                                    >
+                                        {book.largeImageUrl && (
+                                            <img
+                                                src={book.largeImageUrl}
+                                                alt={book.title}
+                                                className="w-12 h-16 object-cover rounded"
+                                            />
+                                        )}
+                                        <div className="flex-1">
+                                            <p className="font-medium text-brown text-sm">{book.title}</p>
+                                            <p className="text-xs text-gray-600">{book.author}</p>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
                         )}
                     </div>
 
@@ -194,18 +293,17 @@ export function BookFormModal({ isOpen, onClose, onSubmit, initialData, }: BookF
                             className="w-full p-3 border-2 border-cyan rounded-xl font-mplus text-base text-brown bg-white focus:outline-none focus:border-[#99e6e6]"
                             placeholder="https://..."
                         />
+                        {/* 画像プレビュー */}
+                        {formData.imageUrl && (
+                            <div className="mt-2">
+                                <img
+                                    src={formData.imageUrl}
+                                    alt="プレビュー"
+                                    className="w-24 h-32 object-cover rounded border-2 border-cyan"
+                                />
+                            </div>
+                        )}
                     </div>
-
-                    {/* <div className="mb-5">
-                        <label className="block mb-2 font-medium text-brown text-base">よんだ かいすう</label>
-                        <input
-                            type="number"
-                            min="1"
-                            value={formData.readCount}
-                            onChange={(e) => setFormData({ ...formData, readCount: parseInt(e.target.value) || 1 })}
-                            className="w-full p-3 border-2 border-cyan rounded-xl font-mplus text-base text-brown bg-white focus:outline-none focus:border-[#99e6e6]"
-                        />
-                    </div> */}
 
                     {/* 評価 */}
                     <div className="mb-5">
