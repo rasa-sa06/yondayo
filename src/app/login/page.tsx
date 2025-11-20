@@ -8,9 +8,7 @@ import { login } from './action';
 import { useActionState } from 'react';
 
 const initialState = {
-    email: "",
-    password: "",
-    message: "",
+    message: ""
 }
 
 export default function Login() {

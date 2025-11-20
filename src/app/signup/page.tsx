@@ -8,7 +8,7 @@ import { signup } from './action';
 import clsx from 'clsx';
 
 const initialState = {
-    message: "",
+    message: ""
 };
 
 export default function Signup() {
