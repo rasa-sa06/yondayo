@@ -3,7 +3,11 @@
 import { redirect } from 'next/navigation';
 import { createClient } from '@/utils/supabase/server';
 
-export async function signup(_prevState: any, formData: FormData) {
+interface SignupState {
+    message: string;
+}
+
+export async function signup(_prevState: SignupState, formData: FormData) {
     const supabase = await createClient();
 
     const email = formData.get('email') as string;

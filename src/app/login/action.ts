@@ -3,7 +3,11 @@
 import { redirect } from 'next/navigation';
 import { createClient } from '../../utils/supabase/server';
 
-export async function login(_prevState: any, formData: FormData) {
+interface LoginState {
+    message: string;
+}
+
+export async function login(_prevState: LoginState, formData: FormData) {
     const supabase = await createClient();
 
     const { data, error } = await supabase.auth.signInWithPassword({

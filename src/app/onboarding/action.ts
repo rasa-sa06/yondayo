@@ -1,9 +1,12 @@
 'use server';
 
-import { revalidatePath } from 'next/cache';
 import { createClient } from '@/utils/supabase/server';
 
-export async function registerChildren(_prevState: any, formData: FormData) {
+interface OnboardingState {
+    message: string;
+}
+
+export async function registerChildren(_prevState: OnboardingState, formData: FormData) {
     const supabase = await createClient();
 
     // 現在のユーザーを取得
@@ -44,14 +47,9 @@ export async function registerChildren(_prevState: any, formData: FormData) {
         }
     }
 
-    // キャッシュを再検証
-    // revalidatePath('/', 'layout');
-
-    // 成功
     return { message: '', success: true };
 }
 
 export async function skipOnboarding() {
-    // revalidatePath('/', 'layout');
     return { message: '', success: true };
 }
