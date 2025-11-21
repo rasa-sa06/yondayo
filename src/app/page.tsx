@@ -1,18 +1,28 @@
 "use client";
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import clsx from 'clsx';
 import { Button } from '../components/Button';
 import { ReadingRecordCard } from '../components/ReadingRecordCard';
 import { BookFormModal } from '../components/BookFormModal';
-import Image from 'next/image'; // ← 追加
+import Image from 'next/image';
 import { useApp } from "../contexts/AppContext";
 import { useRouter } from "next/navigation";
+import { useAuth } from "../contexts/AuthContext";
 import type { ReadingRecordWithBook } from '../types';
 
 export default function Home() {
-    const { records, books, addRecord } = useApp();
+    const { user, loading } = useAuth();              // ← 追加
     const router = useRouter();
+
+    // 認証チェック（必須）
+    useEffect(() => {
+        if (!loading && !user) {
+            router.replace("/login");
+        }
+    }, [loading, user]);
+
+    const { records, books, addRecord } = useApp();
     const [isModalOpen, setIsModalOpen] = useState(false);
 
     // recordsとbooksを結合したデータ
