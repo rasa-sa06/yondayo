@@ -4,11 +4,14 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '../../components/Button';
 import { useApp } from '../../contexts/AppContext';
+import { useAuth } from '../../contexts/AuthContext';
+import { updateProfile, updateEmail, updatePassword } from '../../../lib/auth';
 import clsx from 'clsx';
 
 export default function Settings() {
     const router = useRouter();
     const { childrenList, addChild, deleteChild, updateChild, fetchChildren } = useApp();
+    const { user, profile } = useAuth();
 
     // 初回ロード時に子どもリストを取得
     useEffect(() => {
@@ -16,8 +19,18 @@ export default function Settings() {
     }, []);
 
     // 現在のユーザー情報（後でSupabaseから取得）
-    const [username, setUsername] = useState('ママ');
-    const [email, setEmail] = useState('example@email.com');
+    const [username, setUsername] = useState('');
+    const [email, setEmail] = useState('');
+
+    // プロフィール情報が読み込まれたら、フォームに反映
+    useEffect(() => {
+        if (profile) {
+            setUsername(profile.name || '');
+        }
+        if (user) {
+            setEmail(user.email || '');
+        }
+    }, [profile, user]);
 
     // パスワード変更用
     const [currentPassword, setCurrentPassword] = useState('');
@@ -59,54 +72,93 @@ export default function Settings() {
     };
 
     // プロフィール更新
-    const handleUpdateProfile = () => {
-        const errors: string[] = [];
+    const handleUpdateProfile = async () => {
+        if (isSaving) return;
+        setIsSaving(true);
 
-        if (!username.trim()) {
-            errors.push('ユーザー名を入力してください');
+        try {
+            const errors: string[] = [];
+
+            if (!username.trim()) {
+                errors.push('ユーザー名を入力してください');
+            }
+
+            if (!email.trim()) {
+                errors.push('メールアドレスを入力してください');
+            } else if (!validateEmail(email)) {
+                errors.push('メールアドレスの形式が正しくありません');
+            }
+
+            if (errors.length > 0) {
+                alert(errors.join('\n'));
+                setIsSaving(false);
+                return;
+            }
+
+            // ユーザー名の更新
+            if (user && username !== profile?.name) {
+                await updateProfile(user.id, { name: username });
+            }
+
+            // メールアドレスの更新
+            if (email !== user?.email) {
+                await updateEmail(email);
+                alert('メールアドレスを変更しました。確認メールが送信されますので、メールを確認してください。');
+            } else {
+                alert('プロフィールを更新しました!');
+            }
+
+            // ページをリロードして最新の情報を表示
+            window.location.reload();
+        } catch (error) {
+            console.error('プロフィール更新エラー:', error);
+            alert('更新に失敗しました。もう一度お試しください。');
+        } finally {
+            setIsSaving(false);
         }
-
-        if (!email.trim()) {
-            errors.push('メールアドレスを入力してください');
-        } else if (!validateEmail(email)) {
-            errors.push('メールアドレスの形式が正しくありません');
-        }
-
-        if (errors.length > 0) {
-            alert(errors.join('\n'));
-            return;
-        }
-
-        console.log('プロフィール更新:', { username, email });
-        alert('プロフィールを更新しました！');
     };
 
     // パスワード変更
-    const handleChangePassword = () => {
-        const errors: string[] = [];
+    const handleChangePassword = async () => {
+        if (isSaving) return;  // 連打防止
+        setIsSaving(true);
 
-        if (!currentPassword) {
-            errors.push('現在のパスワードを入力してください');
+        try {
+            const errors: string[] = [];
+
+            if (!currentPassword) {
+                errors.push('現在のパスワードを入力してください');
+            }
+
+            if (newPassword.length < 8) {
+                errors.push('新しいパスワードは8文字以上で入力してください');
+            }
+
+            if (newPassword !== confirmNewPassword) {
+                errors.push('新しいパスワードが一致しません');
+            }
+
+            if (errors.length > 0) {
+                alert(errors.join('\n'));
+                setIsSaving(false);
+                return;
+            }
+
+            await updatePassword(newPassword);
+            alert('パスワードを変更しました!');
+
+            setCurrentPassword('');
+            setNewPassword('');
+            setConfirmNewPassword('');
+
+        } catch (error) {
+
+            console.error('パスワード変更エラー:', error);
+            alert('パスワードの変更に失敗しました。現在のパスワードが正しいか確認してください。');
+        } finally {
+            setIsSaving(false);
         }
 
-        if (newPassword.length < 8) {
-            errors.push('新しいパスワードは8文字以上で入力してください');
-        }
-
-        if (newPassword !== confirmNewPassword) {
-            errors.push('新しいパスワードが一致しません');
-        }
-
-        if (errors.length > 0) {
-            alert(errors.join('\n'));
-            return;
-        }
-
-        console.log('パスワード変更');
-        alert('パスワードを変更しました！');
-        setCurrentPassword('');
-        setNewPassword('');
-        setConfirmNewPassword('');
     };
 
     // 子ども追加モード
@@ -151,7 +203,7 @@ export default function Settings() {
         if (editingChild.id === 'new') {
             // 新規追加
             await addChild({
-                userId: '00000000-0000-0000-0000-000000000000',
+                userId: user?.id || '',
                 name: editingChild.name,
                 birthday: editingChild.birthday,
             });
@@ -233,6 +285,7 @@ export default function Settings() {
                             value={username}
                             onChange={(e) => setUsername(e.target.value)}
                             className={inputClassName}
+                            placeholder="ユーザー名を入力"
                         />
                     </div>
 
@@ -245,15 +298,20 @@ export default function Settings() {
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
                             className={inputClassName}
+                            placeholder="メールアドレスを入力"
                         />
+                        <p className="text-xs text-gray-500 mt-1">
+                            ※メールアドレスを変更すると、確認メールが送信されます
+                        </p>
                     </div>
 
                     <Button
                         variant="primary"
                         size="medium"
                         onClick={handleUpdateProfile}
+                        disabled={isSaving}
                     >
-                        更新する
+                        {isSaving ? '更新中...' : '更新する'}
                     </Button>
                 </div>
             </section>
@@ -307,8 +365,9 @@ export default function Settings() {
                         variant="primary"
                         size="medium"
                         onClick={handleChangePassword}
+                        disabled={isSaving}
                     >
-                        パスワードを変更
+                        {isSaving ? '変更中...' : 'パスワードを変更'}
                     </Button>
                 </div>
             </section>

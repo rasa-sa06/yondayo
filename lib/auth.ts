@@ -82,6 +82,57 @@ export async function getProfile(userId: string): Promise<Profile | null> {
 }
 
 // ======================
+// プロフィール情報を更新 ← ★ここから追加
+// ======================
+export async function updateProfile(userId: string, updates: { name?: string }) {
+    const { data, error } = await supabase
+        .from('profiles')
+        .update(updates)
+        .eq('id', userId)
+        .select()
+        .single();
+
+    if (error) {
+        console.error('プロフィール更新エラー:', error);
+        throw error;
+    }
+
+    return data;
+}
+
+// ======================
+// メールアドレスを更新
+// ======================
+export async function updateEmail(newEmail: string) {
+    const { data, error } = await supabase.auth.updateUser({
+        email: newEmail
+    });
+
+    if (error) {
+        console.error('メールアドレス更新エラー:', error);
+        throw error;
+    }
+
+    return data;
+}
+
+// ======================
+// パスワードを更新
+// ======================
+export async function updatePassword(newPassword: string) {
+    const { data, error } = await supabase.auth.updateUser({
+        password: newPassword
+    });
+
+    if (error) {
+        console.error('パスワード更新エラー:', error);
+        throw error;
+    }
+
+    return data;
+}
+
+// ======================
 // ログイン状態の変化を監視
 // ======================
 export function onAuthStateChange(callback: (user: User | null) => void) {
