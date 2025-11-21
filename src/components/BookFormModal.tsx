@@ -231,14 +231,22 @@ export function BookFormModal({ isOpen, onClose, onSubmit, initialData }: BookFo
                                 className="flex-1 p-3 border-2 border-cyan rounded-xl font-mplus text-base text-brown bg-white focus:outline-none focus:border-[#99e6e6]"
                                 placeholder="ほんの なまえを いれて ください"
                             />
-                            <button
-                                type="button"
+                            <Button
+                                variant="secondary"
+                                size="small"
                                 onClick={handleRakutenSearch}
                                 disabled={isSearching}
-                                className="px-4 py-3 bg-orange text-white rounded-xl font-mplus text-base font-medium hover:opacity-80 disabled:opacity-50 whitespace-nowrap"
                             >
-                                {isSearching ? '検索中...' : '🔍 検索'}
-                            </button>
+                                <div className="flex items-center gap-2">
+                                    <Image
+                                        src="/icon-search.png"
+                                        alt="検索"
+                                        width={20}
+                                        height={20}
+                                    />
+                                    <span>{isSearching ? 'さがしてるよ' : 'さがす'}</span>
+                                </div>
+                            </Button>
                         </div>
 
                         {/* 既存の本の予測変換 */}
