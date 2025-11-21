@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Button } from './Button';
 import { StarRating } from './StarRating';
+import Image from 'next/image';
 import type { ReadingRecord, ReadingRecordWithBook, Book } from '../types';
 import { useApp } from '../contexts/AppContext';
 
@@ -16,6 +17,19 @@ type RakutenBook = {
     title: string;
     author: string;
     largeImageUrl: string;
+};
+
+// 楽天APIのレスポンス型
+type RakutenApiItem = {
+    Item: {
+        title: string;
+        author: string;
+        largeImageUrl: string;
+    };
+};
+
+type RakutenApiResponse = {
+    Items?: RakutenApiItem[];
 };
 
 export function BookFormModal({ isOpen, onClose, onSubmit, initialData }: BookFormModalProps) {
@@ -96,10 +110,10 @@ export function BookFormModal({ isOpen, onClose, onSubmit, initialData }: BookFo
             const response = await fetch(
                 `/api/rakuten/search-by-title?title=${encodeURIComponent(formData.title)}`
             );
-            const data = await response.json();
+            const data: RakutenApiResponse = await response.json();
 
             if (data.Items && data.Items.length > 0) {
-                const books = data.Items.map((item: any) => ({
+                const books = data.Items.map((item: RakutenApiItem) => ({
                     title: item.Item.title,
                     author: item.Item.author,
                     largeImageUrl: item.Item.largeImageUrl,
@@ -255,9 +269,11 @@ export function BookFormModal({ isOpen, onClose, onSubmit, initialData }: BookFo
                                         onClick={() => handleSelectRakutenBook(book)}
                                     >
                                         {book.largeImageUrl && (
-                                            <img
+                                            <Image
                                                 src={book.largeImageUrl}
                                                 alt={book.title}
+                                                width={48}
+                                                height={64}
                                                 className="w-12 h-16 object-cover rounded"
                                             />
                                         )}
@@ -296,9 +312,11 @@ export function BookFormModal({ isOpen, onClose, onSubmit, initialData }: BookFo
                         {/* 画像プレビュー */}
                         {formData.imageUrl && (
                             <div className="mt-2">
-                                <img
+                                <Image
                                     src={formData.imageUrl}
                                     alt="プレビュー"
+                                    width={96}
+                                    height={128}
                                     className="w-24 h-32 object-cover rounded border-2 border-cyan"
                                 />
                             </div>
