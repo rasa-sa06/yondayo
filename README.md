@@ -5,7 +5,9 @@
 # よんだよ
 **親子で楽しめる読み聞かせ記録アプリ**</br>
 読み聞かせで読んだ絵本を記録していくシンプルなアプリです。</br>
-<img src="./public/readme/dashboard.png" width="800" alt="ダッシュボード画面">
+<div align="center">
+<img src="./public/readme/dashboard.png" width="700" alt="ダッシュボード画面">
+</div>
 
 🌐 **デモURL**　https://yondayo-steel.vercel.app/</br>
 メールアドレス：</br>
