@@ -5,7 +5,7 @@ import Image from 'next/image';
 import clsx from 'clsx';
 import { Button } from '../../components/Button';
 import { Card } from '../../components/Card';
-import type { AgeCategory, BookCategory, RecommendedBook, RakutenBooksResponse, PaginatedBooksResponse } from '../../types';
+import type { AgeCategory, BookCategory, RecommendedBook, PaginatedBooksResponse } from '../../types';
 import { useApp } from "../../contexts/AppContext";
 
 export default function Search() {
