@@ -10,8 +10,10 @@
 </div>
 
 🌐 **デモURL**　https://yondayo-steel.vercel.app/</br>
-メールアドレス：</br>
-パスワード：</br>
+メールアドレス：r6yuna@yahoo.co.jp</br>
+パスワード：Sakutai2025</br>
+※バグがあるため、ログイン後にリロードしてください。
+※コードレビューの間だけ、このアドレスでご確認ください。
 
 
 
