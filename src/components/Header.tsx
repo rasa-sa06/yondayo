@@ -5,31 +5,16 @@ import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useApp } from "../contexts/AppContext";
-import { getCurrentUser, getProfile, Profile, signOut } from "../../lib/auth";
-import { User } from "@supabase/supabase-js";
+import { useAuth } from "../contexts/AuthContext";
+import { signOut } from "../../lib/auth";
 
 export function Header() {
     const router = useRouter();
-    const [user, setUser] = useState<User | null>(null);
-    const [profile, setProfile] = useState<Profile | null>(null);
+    const { user, profile } = useAuth();
     const { selectedChildId, setSelectedChildId, childrenList } = useApp();
     const [isOpen, setIsOpen] = useState(false);
     const [loading, setLoading] = useState(false);
     const dropdownRef = useRef<HTMLDivElement>(null);
-
-    useEffect(() => {
-        const getUser = async () => {
-            const currentUser = await getCurrentUser();
-
-            if (currentUser) {
-                const profileData = await getProfile(currentUser.id)
-                setProfile(profileData);
-                setUser(currentUser);
-            }
-        };
-
-        getUser();
-    }, []);
 
     // 選択された子どもの情報を取得
     const selectedChild = childrenList.find(child => child.id === selectedChildId);
