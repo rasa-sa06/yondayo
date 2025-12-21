@@ -19,11 +19,12 @@ export function Header() {
 
     useEffect(() => {
         const getUser = async () => {
-            const user = await getCurrentUser();
+            const currentUser = await getCurrentUser();
 
-            if (user) {
-                setProfile(await getProfile(user.id));
-                setUser(user);
+            if (currentUser) {
+                const profileData = await getProfile(currentUser.id)
+                setProfile(profileData);
+                setUser(currentUser);
             }
         };
 
